@@ -1,0 +1,7 @@
+/* Only the new reading-path controls; the original viewer CSS stays intact. */
+.object-paths{margin:0 0 14px;padding:0 0 13px;border-bottom:1px solid #ffffff35;display:flex;flex-wrap:wrap;gap:7px;pointer-events:auto}
+.object-paths::before{content:'继续探索';display:block;flex-basis:100%;font-size:12px;letter-spacing:.08em;line-height:1.4;opacity:.8;margin-bottom:2px}
+.object-paths button{font:inherit;font-size:13px;line-height:1.4;color:#fff;background:#ffffff15;border:1px solid #ffffff60;border-radius:18px;padding:8px 11px;cursor:pointer;touch-action:manipulation;white-space:nowrap}
+.object-paths button:hover{background:#ffffff35}
+.object-paths button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+@media(max-width:640px){.object-paths button{font-size:12px;padding:9px 10px}}

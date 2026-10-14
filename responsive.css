@@ -1,0 +1,130 @@
+/* One image surface: captions belong to the picture, never a reading column. */
+html body.adaptive-layout #content-wrapper, html body.adaptive-layout.immersive-active {background:#191e1c !important;--mobile-top-safe-area:0px;--mobile-bottom-safe-area:0px}
+html body.adaptive-layout.immersive-active #main-image-container {inset:auto!important;left:var(--stage-x)!important;top:var(--stage-y)!important;width:var(--stage-w)!important;height:var(--stage-h)!important;max-width:none!important;max-height:none!important;border-radius:0!important;overflow:hidden!important;touch-action:none;background:#191e1c!important}
+html body.adaptive-layout.immersive-active #main-image-container::after {background:none}
+html body.adaptive-layout.immersive-active #text-panel,html body.adaptive-layout.immersive-active #text-panel.floating-active,html body.adaptive-layout #text-panel-toggle,html body.adaptive-layout .text-panel-backdrop {display:none!important}
+#picture-caption {box-sizing:border-box;position:absolute;z-index:1100;bottom:0;left:0;right:0;margin:0;padding:65px 5vw 30px;color:#fff7e9;background:linear-gradient(transparent,rgba(18,24,18,.77));pointer-events:none;text-shadow:0 2px 12px #0007;font-family:'Noto Sans SC','Microsoft YaHei',sans-serif}
+#picture-caption[hidden] {display:none!important}
+#picture-caption small {font-size:10px;letter-spacing:.16em;color:#f0dcaf}
+#picture-caption h1 {max-width:720px;margin:8px 0;font:500 34px/1.4 'Noto Serif SC','Songti SC',SimSun,serif}
+#picture-caption p {max-width:650px;margin:0;font-size:14px;line-height:1.85;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;color:#f3efe4}
+#picture-tools {position:absolute;right:20px;top:16px;z-index:1101;display:flex;gap:8px}
+#picture-tools button {appearance:none;min-height:38px;padding:0 13px;border:1px solid #faf0d145;border-radius:5px;color:#fff6e6;background:#1b251ebd;backdrop-filter:blur(10px);font:12px 'Microsoft YaHei',sans-serif;cursor:pointer}
+#picture-tools button:focus-visible {outline:2px solid #e8bc75;outline-offset:2px}
+#picture-tools button[aria-pressed=true] {border-color:#dcc494;background:#394233db}
+#object-picture {position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1001;background:#191e1c;pointer-events:none}
+#object-picture[hidden] {display:none!important}
+.picture-transition {position:absolute!important;max-width:none!important;max-height:none!important;z-index:1002!important;pointer-events:none!important;transform:none!important}
+html body.adaptive-layout.picture-detail #labels-container,html body.adaptive-layout.picture-detail #lines-svg {visibility:hidden!important;pointer-events:none!important}
+html body.adaptive-layout.immersive-active #lightbox-toolbar {top:0!important;height:64px!important;padding:8px 18px!important;gap:12px;background:#191e1c!important;border-bottom:1px solid #ffffff12}
+html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-feedback-share-group {height:44px;padding:0 4px;gap:0;border-radius:5px}
+html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-feedback-share-group button {height:44px!important}
+html body.adaptive-layout.immersive-active #lightbox-feedback-button {display:none!important}
+html body.adaptive-layout.immersive-active #lightbox-collapse-button {height:44px;border-radius:5px}
+html body.adaptive-layout.immersive-active #lightbox-back-arrow:not(.lightbox-back-arrow--hidden) {display:flex!important;min-height:44px}
+html body.adaptive-layout.immersive-active .toolbar-left {gap:4px;min-width:0;overflow:hidden}
+html body.adaptive-layout.immersive-active .toolbar-right {flex:none}
+html body.adaptive-layout.immersive-active #mini-map-container,html body.adaptive-layout.immersive-active #onboarding-tooltip {display:none!important}
+html body.adaptive-layout.immersive-active .label {font-family:'Noto Sans SC','Microsoft YaHei',sans-serif!important;background:#fcf7e8e8!important;border:1px solid #79796970!important;color:#28352a!important;min-height:38px!important;height:auto!important;white-space:nowrap;padding:6px 12px!important;backdrop-filter:blur(8px)!important}
+html body.adaptive-layout.immersive-active .label-line {stroke:#fff7dc!important}
+html body.adaptive-layout.immersive-active #landscape-nudge-overlay {display:none!important}
+html body.adaptive-layout.immersive-active.landscape-nudge-active #lightbox-toolbar,html body.adaptive-layout.immersive-active.landscape-nudge-active #lightbox-toolbar *,html body.adaptive-layout.immersive-active.landscape-nudge-active #labels-container {opacity:1!important;pointer-events:auto!important}
+@media(max-width:700px) {
+ #picture-caption {padding:55px 22px 24px}
+ #picture-caption h1 {font-size:27px;margin:7px 0}
+ #picture-caption p {font-size:13px;line-height:1.8;-webkit-line-clamp:3}
+ #picture-caption small {font-size:9px;letter-spacing:.1em}
+ #picture-tools {right:12px;top:12px;gap:6px}
+ #picture-tools button {font-size:11px;padding:0 10px}
+ html body.adaptive-layout.immersive-active #lightbox-toolbar {padding:8px 10px!important;gap:5px}
+ html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right {gap:5px}
+ html body.adaptive-layout.immersive-active .label {font-size:11px!important;min-height:36px!important;padding:4px 8px!important}
+ body.picture-fit #picture-caption {padding:28px 16px 12px}
+ body.picture-fit #picture-caption small {display:none}
+ body.picture-fit #picture-caption p {font-size:11px;line-height:1.6;-webkit-line-clamp:2;margin-top:3px}
+ body.picture-fit #picture-caption h1 {font-size:20px;margin:0}
+}
+@media(max-height:500px) and (orientation:landscape) {
+ #picture-caption {padding:40px 24px 15px}
+ #picture-caption h1 {font-size:23px;margin:4px 0}
+ #picture-caption p {font-size:12px;line-height:1.5;-webkit-line-clamp:2;max-width:620px}
+}
+
+/* Keep the action and the visitor's place in the fair legible at every depth. */
+html body.adaptive-layout #viewer-header-breadcrumbs {display:none !important}
+html body.adaptive-layout #journey-location {min-width:0;display:flex;flex-direction:column;gap:3px;padding-left:15px;border-left:1px solid #d9d9bd26;margin-left:8px;pointer-events:none}
+#journey-location small {font:10px/1.4 "Noto Sans SC","Microsoft YaHei",sans-serif;color:#aab69f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#journey-location strong {font:500 15px/1.4 "Noto Sans SC","Microsoft YaHei",sans-serif;color:#ede9db;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body.adaptive-layout.immersive-active #lightbox-back-arrow:not(.lightbox-back-arrow--hidden) {font:13px/1.4 "Noto Sans SC","Microsoft YaHei",sans-serif;white-space:nowrap;padding:0 12px;border-radius:6px;background:#ffffff0c;min-height:44px;flex:none;transition:background .16s}
+html body.adaptive-layout.immersive-active #lightbox-back-arrow:hover {background:#ffffff1c}
+html body.adaptive-layout #lightbox-toolbar button:focus-visible,html body.adaptive-layout #lightbox-back-arrow:focus-visible {outline:2px solid #dfb66e !important;outline-offset:2px}
+html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-feedback-share-group {background:transparent !important;gap:3px;padding:0}
+html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-feedback-share-group button {width:50px !important;border-radius:6px !important;background:#ffffff0c !important;color:#e4e7dc !important}
+html body.adaptive-layout #lightbox-inline-conversation-button svg,html body.adaptive-layout #lightbox-share-button svg,html body.adaptive-layout #lightbox-collapse-button svg {display:none !important}
+#lightbox-inline-conversation-button::after {content:'资料';font-size:12px;color:#e5e9de}
+#lightbox-share-button::after {content:'分享';font-size:12px;color:#e5e9de}
+html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-collapse-button {width:76px;background:#f2e8d7}
+#lightbox-collapse-button::after {content:'河南地图';font-size:12px;color:#394637}
+html body.adaptive-layout.immersive-active .floating-node-hidden {opacity:1 !important;visibility:visible !important;pointer-events:auto !important}
+html body.adaptive-layout.immersive-active .label.pinned {background:#ae5038 !important;color:#fff9e7 !important;border-color:#f3c795 !important;box-shadow:0 0 0 3px #ab503b2b !important}
+html body.adaptive-layout.immersive-active .label:hover {box-shadow:0 2px 14px #0003 !important}
+html body.adaptive-layout.immersive-active .label:active {filter:brightness(.92)}
+html body.adaptive-layout.immersive-active .label-line.pinned {stroke:#e49f6f !important;stroke-width:2.5px !important}
+html body.adaptive-layout.immersive-active .object-paths {margin:20px 0 18px;padding:16px 0;border-top:1px solid #ffffff20;border-bottom:1px solid #ffffff20}
+html body.adaptive-layout.immersive-active .object-paths button {min-height:44px}
+
+@media(max-width:640px) {
+ html body.adaptive-layout #journey-location {border:0;padding-left:3px;margin-left:0;gap:2px}
+ html body.adaptive-layout #journey-location small {font-size:9px}
+ html body.adaptive-layout #journey-location strong {font-size:12px}
+ html body.adaptive-layout.immersive-active #lightbox-back-arrow:not(.lightbox-back-arrow--hidden) {padding:0 7px;font-size:11px}
+ html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-feedback-share-group button {width:36px !important}
+ html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-collapse-button {width:42px}
+ #lightbox-collapse-button::after {content:'地图';font-size:11px}
+ #lightbox-inline-conversation-button::after,#lightbox-share-button::after {font-size:11px}
+}
+
+html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-feedback-share-group #lightbox-feedback-button {display:none!important}
+@media(max-width:700px) and (orientation:portrait) {body:not(.picture-fit) #object-picture {object-fit:cover}}
+
+/* A redrawn detail is a complete scene: keep both hands, objects and context in view. */
+@media(max-width:700px) and (orientation:portrait) {
+ body.independent-detail:not(.picture-fit) #object-picture {object-fit:contain;object-position:center top}
+ body.independent-detail:not(.picture-fit) #picture-caption {top:calc(56.25vw - 18px);bottom:auto;max-height:calc(100% - 56.25vw + 18px);padding-top:24px}
+}
+
+/* Full descriptions stay attached to the current image; expand in place. */
+#picture-caption {display:flex;flex-direction:column;align-items:flex-start;max-height:72%;padding-top:40px;padding-bottom:20px}
+#picture-caption > small,#picture-caption > h1 {flex:none}
+#caption-reading {min-height:0;max-width:720px;width:100%;overflow:hidden;pointer-events:auto;touch-action:pan-y;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#bcb29855 transparent;user-select:text}
+#caption-reading .caption-summary {-webkit-line-clamp:4;max-width:720px}
+#caption-reading:focus-visible {outline:1px solid #e7cb91;outline-offset:3px}
+#caption-expand {flex:none;pointer-events:auto;touch-action:manipulation;min-height:36px;padding:7px 0 0;margin:3px 0 0;border:0;background:none;color:#f0d49b;font:12px/1.5 'Microsoft YaHei',sans-serif;cursor:pointer}
+#caption-expand:focus-visible {outline:2px solid #e7cb91;outline-offset:3px}
+#caption-more[hidden] {display:none!important}
+#picture-caption.expanded {padding-top:24px;background:linear-gradient(transparent,rgba(18,24,18,.92) 30px)}
+#picture-caption.expanded #caption-reading {overflow-y:auto;padding-right:12px;box-sizing:border-box}
+#picture-caption.expanded #caption-reading p {display:block;overflow:visible;-webkit-line-clamp:unset;max-width:none}
+.caption-section {padding-top:17px;margin-top:15px;border-top:1px solid #f0e6cc26}
+.caption-section h2 {margin:0 0 6px;font:500 14px/1.6 'Microsoft YaHei',sans-serif;color:#efd9ac}
+#picture-caption .caption-section p {font-size:13px;line-height:1.85;color:#ece7db}
+@media(max-width:700px) {
+ #picture-caption {padding-top:34px;padding-bottom:16px;max-height:72%}
+ #caption-reading .caption-summary {-webkit-line-clamp:6}
+ #caption-expand {min-height:36px;font-size:12px}
+ #picture-caption.expanded {padding-top:22px}
+ #picture-caption .caption-section p {font-size:13px}
+ body.picture-fit #picture-caption {padding:20px 16px 10px;max-height:100%}
+ body.picture-fit #caption-reading .caption-summary {-webkit-line-clamp:2}
+ body.picture-fit #caption-expand {min-height:30px;font-size:11px}
+}
+@media(max-height:500px) and (orientation:landscape) {
+ #picture-caption {padding:18px 24px 10px;max-height:86%}
+ #picture-caption h1 {font-size:22px}
+ #caption-reading .caption-summary {-webkit-line-clamp:2}
+ #picture-caption.expanded {padding-top:15px}
+ #caption-expand {min-height:30px;padding-top:3px}
+}
+
+/* Story captions replace the former source drawer throughout the public flow. */
+html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-feedback-share-group #lightbox-inline-conversation-button {display:none!important}

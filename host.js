@@ -1,0 +1,465 @@
+'use strict';
+(() => {
+  const ROOT_ID = '54749336813040';
+  const FEEDBACK_KEY = 'henan-fair-atlas-feedback';
+  const frame = document.getElementById('viewer');
+  const shareDialog = document.getElementById('host-share');
+  const hostDialogs = [shareDialog];
+  const frameOrigin = new URL(frame.getAttribute('src'), location.href).origin;
+  const targetOrigin = frameOrigin === 'null' ? '*' : frameOrigin;
+  const params = new URLSearchParams(location.search);
+  const requestedNode = params.get('node') || params.get('node_id') || ROOT_ID;
+  const requestedPath = params.get('path');
+  let storyRequestedFor = requestedPath ? requestedNode : null;
+  let currentNode = ROOT_ID;
+  let catalog = null;
+  let stories = {};
+  let catalogError = null;
+  let toastTimer;
+  let minimizedTimer;
+  let previousFocus = null;
+  let pinnedObserver = null;
+  let observedPin = null;
+  let home = null;
+  let entering = false;
+  let pictures = null;
+  let pictureRequest = 0;
+  let lastPictureNode = null;
+  let resolveViewerReady;
+  const viewerReady = new Promise(resolve => { resolveViewerReady = resolve; });
+  const reduceMotion = () => matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  const catalogReady = Promise.all(['catalog.json','stories.json'].map(file =>
+      fetch(file, {credentials:'same-origin'}).then(response => {
+        if (!response.ok) throw new Error(`${file}: ${response.status}`);
+        return response.json();
+      })))
+      .then(([data, narrative]) => {
+        stories = narrative;
+        if (!data || typeof data !== 'object' || Array.isArray(data) || !data[ROOT_ID]) {
+          throw new Error('catalog: invalid root');
+        }
+        catalog = data;
+        home = window.FairHome.mount({container:document.getElementById('province-home'),catalog,onEnter:enterFair});
+        document.querySelector('.home-footer')?.append(document.getElementById('review-qr'));
+        home.setVisible(currentNode === ROOT_ID);
+        return catalog;
+      })
+      .catch(error => {
+        catalogError = error;
+        return null;
+      });
+
+  function send(data) {
+    frame.contentWindow?.postMessage(data, targetOrigin);
+  }
+
+  function initializeViewer(nodeId) {
+    send({type: 'setIsMobileApp', value: matchMedia('(pointer:coarse)').matches});
+    send({type: 'initLightboxMode', node_id: nodeId});
+    send({type: 'lightboxInlineConversationVisibilityChange', action: 'hide'});
+    // Retain the native tools, with readable actions and a true parent return.
+    try {
+      const labels = {
+        'lightbox-share-button': '分享此处',
+        'lightbox-collapse-button': '回到河南地图'
+      };
+      for (const [id, label] of Object.entries(labels)) {
+        const button = frame.contentDocument?.getElementById(id);
+        if (button) {
+          button.title = label;
+          button.setAttribute('aria-label', label);
+        }
+      }
+    } catch { /* Labels are optional if the frame is ever served cross-origin. */ }
+    updateJourney(nodeId);
+  }
+
+  function goUp() {
+    const parent = catalog?.[currentNode]?.parentId;
+    if (!parent) return;
+    const zoomBack = frame.contentDocument?.querySelector('.mobile-breadcrumb-zoom-out.active');
+    if (catalog[currentNode].kind === 'scene' && zoomBack) zoomBack.click();
+    else navigateViewer(parent);
+  }
+
+  function updateJourney(nodeId) {
+    const doc = frame.contentDocument, entry = catalog?.[nodeId];
+    if (!doc || !entry) return;
+    const back = doc.getElementById('lightbox-back-arrow');
+    if (back && !back.dataset.journeyBound) {
+      back.dataset.journeyBound = 'true'; back.setAttribute('role','button'); back.tabIndex = 0;
+      back.addEventListener('click', event => { event.preventDefault(); event.stopImmediatePropagation(); goUp(); }, true);
+      back.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopImmediatePropagation(); goUp(); }
+      }, true);
+      doc.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !hostDialogs.some(d => d.open)) { event.preventDefault(); event.stopImmediatePropagation(); goUp(); }
+      }, true);
+      const location = doc.createElement('div'); location.id = 'journey-location';
+      location.append(doc.createElement('small'),doc.createElement('strong'));
+      back.parentElement.append(location);
+    }
+    const parent = catalog[entry.parentId];
+    const action = parent?.kind === 'scene' ? '返回活动' : parent?.kind === 'world' ? '返回会场' : '返回地图';
+    if (back) { back.textContent = '← ' + action; back.title = parent ? `${action} · ${parent.label}` : '河南地图'; back.setAttribute('aria-label',back.title); }
+    const location = doc.getElementById('journey-location'), fair = findFair(entry);
+    if (location) {
+      location.querySelector('small').textContent = [entry.city,fair?.label].filter(Boolean).join(' · ');
+      location.querySelector('strong').textContent = entry.label;
+    }
+  }
+
+  async function enterFair(nodeId) {
+    if (entering || !isKnownNode(nodeId)) return;
+    entering = true; home?.setEntering(true);
+    try {
+      await viewerReady;
+      navigateViewer(nodeId);
+      const image = frame.contentDocument.getElementById('main-image');
+      const expected = new URL(`assets/worlds/${catalog[nodeId].caseId}.webp`,location.href).href;
+      // Keep the map in place until the destination is visible and decoded.
+      await new Promise((resolve,reject) => {
+        const started = performance.now();
+        function ready() {
+          if (image.src === expected && image.complete && image.naturalWidth && +frame.contentWindow.getComputedStyle(image).opacity > .9) resolve();
+          else if (performance.now()-started > 12000) reject(new Error('scene timeout'));
+          else setTimeout(ready,60);
+        }
+        ready();
+      });
+      const surface = document.getElementById('province-home');
+      surface.inert = true;
+      if (!reduceMotion()) {
+        const animation = surface.animate([{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(1.015)'}],{duration:240,easing:'cubic-bezier(.22,.61,.36,1)',fill:'forwards'});
+        await animation.finished; home.setVisible(false); animation.cancel();
+      } else home.setVisible(false);
+      frame.inert = false; frame.focus({preventScroll:true});
+    } catch {
+      navigateViewer(ROOT_ID,{record:false});
+      toast('会场暂未载入，请稍后再点“走进这场庙会”。');
+    } finally { entering = false; home?.setEntering(false); }
+  }
+
+  function isKnownNode(value) {
+    return typeof value === 'string' && value.length <= 240 &&
+        /^[a-zA-Z0-9_-]+$/.test(value) && (!catalog || Object.hasOwn(catalog, value));
+  }
+
+  function observePinnedObjects() {
+    pinnedObserver?.disconnect();
+    observedPin = null;
+    const panel = frame.contentDocument?.getElementById('text-panel');
+    if (!panel) return;
+    // PIN_LEAF below identifies selection. Only the native panel's explicit
+    // return to the parent heading clears it; label redraws during pan/resize
+    // must not change sharing or source context.
+    let lastHeading = panel.querySelector('.text-panel-title')?.textContent;
+    pinnedObserver = new MutationObserver(() => {
+      const heading = panel.querySelector('.text-panel-title')?.textContent;
+      if (heading && heading !== lastHeading) {
+        lastHeading = heading;
+        const content = panel.querySelector('.text-panel-content');
+        content.scrollTop = 0;
+        if (!reduceMotion()) content.animate([{opacity:.3,transform:'translateY(6px)'},{opacity:1,transform:'translateY(0)'}],{duration:220,easing:'ease-out'});
+      }
+      const parent = catalog?.[observedPin]?.parentId;
+      if (observedPin && panel.querySelector('.text-panel-title')?.textContent === catalog?.[parent]?.label) {
+        observedPin = null;
+        if (isKnownNode(parent)) {
+          currentNode = parent;
+          updateAddress(parent,{record:true});
+        }
+      }
+      renderPicture(currentNode);
+    });
+    pinnedObserver.observe(panel, {subtree: true, childList: true, characterData: true});
+  }
+
+  function updateAddress(nodeId,{record=false}={}) {
+    if (lastPictureNode !== nodeId) {
+      lastPictureNode = nodeId; pictureRequest++;
+      frame.contentDocument?.querySelectorAll('.picture-transition').forEach(image=>{if(image.dataset.target!==nodeId)image.remove();});
+    }
+    document.getElementById('review-qr').hidden = nodeId !== ROOT_ID;
+    const surface = document.getElementById('province-home'), returning = nodeId === ROOT_ID && surface.hidden;
+    home?.setVisible(nodeId === ROOT_ID || entering);
+    frame.inert = nodeId === ROOT_ID || entering;
+    if (returning) {
+      if (!reduceMotion()) surface.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:220,easing:'ease-out'});
+      surface.querySelector('.home-enter')?.focus({preventScroll:true});
+    }
+    const url = new URL(location.href);
+    url.searchParams.delete('path');
+    url.searchParams.delete('node_id');
+    if (nodeId === ROOT_ID) url.searchParams.delete('node');
+    else url.searchParams.set('node', nodeId);
+    if (url.href !== location.href) history[record?'pushState':'replaceState']({node: nodeId}, '', url);
+    const label = catalog?.[nodeId]?.label;
+    document.title = label && nodeId !== ROOT_ID ? `${label} · 赶一场中原庙会` : '赶一场中原庙会';
+    renderPicture(nodeId);
+    pictures?.update(nodeId);
+    updateJourney(nodeId);
+  }
+
+  function pictureUrl(entry) {
+    if (entry?.kind === 'object') return entry.exploration?.detailImage;
+    if (entry?.kind === 'scene') return `assets/scenes/${entry.caseId}-${String(entry.sceneNumber).padStart(2,'0')}.webp`;
+    if (entry?.kind === 'world') return `assets/worlds/${entry.caseId}.webp`;
+    return null;
+  }
+
+  function renderPicture(nodeId) {
+    const doc = frame.contentDocument, entry = catalog?.[nodeId];
+    const caption = doc?.getElementById('picture-caption');
+    if (!caption || !entry) return;
+    if (caption.dataset.nodeId !== nodeId) {
+      caption.dataset.nodeId = nodeId;
+      caption.querySelector('small').textContent = [entry.city,entry.kind === 'world' ? '走进庙会' : entry.kind === 'scene' ? '会场一隅' : '人与物的故事'].filter(Boolean).join(' · ');
+      caption.querySelector('h1').textContent = entry.label;
+      const story = stories[nodeId];
+      caption.querySelector('.caption-summary').textContent = story?.summary || '这一段故事暂未载入，请稍后再试。';
+      caption.classList.remove('expanded');
+      const reading = doc.getElementById('caption-reading'); reading.scrollTop = 0;
+      const more = doc.getElementById('caption-more'); more.hidden = true; more.replaceChildren();
+      const expand = doc.getElementById('caption-expand');
+      expand.setAttribute('aria-expanded','false'); expand.textContent = '继续读故事 ↓';
+      for (const paragraph of story?.paragraphs || []) {
+        const block = element('section',null,'caption-section');
+        block.append(element('h2',paragraph.title),element('p',paragraph.text)); more.append(block);
+      }
+      if (!reduceMotion()) caption.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:240,easing:'ease-out'});
+    }
+    const detail = doc.getElementById('object-picture');
+    if (detail) {
+      const isDetail = entry.kind === 'object' && Boolean(pictureUrl(entry));
+      detail.hidden = !isDetail;
+      doc.body.classList.toggle('picture-detail',isDetail);
+      doc.body.classList.toggle('independent-detail',isDetail && Boolean(entry.exploration?.independentScene));
+      if (isDetail) {
+        const src = new URL(pictureUrl(entry),location.href).href;
+        if (detail.src !== src) detail.src = src;
+        detail.alt = entry.label + (entry.exploration?.independentScene ? ' · 独立 AI 概念场景' : ' · AI 概念插画局部');
+      }
+    }
+    // The native viewer selects the parent before pinning a deep-linked object.
+    // Open its story only after that final selection, so the pin does not reset it.
+    if (storyRequestedFor === nodeId && doc.querySelector('.text-panel-title')?.textContent === entry.label) {
+      storyRequestedFor = null;
+      showStory();
+    }
+  }
+
+  function showStory() {
+    const doc = frame.contentDocument, caption = doc?.getElementById('picture-caption');
+    if (!caption || currentNode === ROOT_ID) return;
+    if (caption.hidden) doc.getElementById('picture-caption-toggle').click();
+    if (!caption.classList.contains('expanded')) doc.getElementById('caption-expand').click();
+  }
+
+  async function switchPicture(nodeId) {
+    const entry = catalog?.[nodeId], src = pictureUrl(entry);
+    if (!src) return;
+    const request = ++pictureRequest;
+    const preload = new Image(); preload.src = src;
+    try { await preload.decode(); }
+    catch { toast('这张图片暂未载入，请再试一次。'); throw new Error('Picture unavailable'); }
+    if (request !== pictureRequest) return;
+    const doc = frame.contentDocument, stage = doc.getElementById('main-image-container');
+    const current = doc.body.classList.contains('picture-detail') ? doc.getElementById('object-picture') : doc.getElementById('main-image');
+    let snapshot;
+    if (!reduceMotion() && current?.complete && current.naturalWidth) {
+      const r = current.getBoundingClientRect(), s = stage.getBoundingClientRect();
+      snapshot = doc.createElement('img'); snapshot.src = current.src; snapshot.alt = '';
+      snapshot.dataset.target = nodeId;
+      snapshot.className = 'picture-transition';
+      const imageStyle = frame.contentWindow.getComputedStyle(current);
+      Object.assign(snapshot.style,{left:(r.left-s.left)+'px',top:(r.top-s.top)+'px',width:r.width+'px',height:r.height+'px',objectFit:imageStyle.objectFit,objectPosition:imageStyle.objectPosition});
+      stage.append(snapshot);
+    }
+    try {
+      navigateViewer(nodeId);
+      await new Promise((resolve,reject)=>{
+        const started = performance.now(), expected = new URL(src,location.href).href;
+        const ready = () => {
+          if (currentNode !== nodeId) { resolve(); return; }
+          const image = entry.kind === 'object' ? doc.getElementById('object-picture') : doc.getElementById('main-image');
+          if (image?.src === expected && image.complete && image.naturalWidth && (entry.kind === 'object' || +frame.contentWindow.getComputedStyle(image).opacity > .9)) resolve();
+          else if (performance.now()-started > 8000) reject(new Error('Picture timeout'));
+          else setTimeout(ready,40);
+        };
+        ready();
+      });
+      if (snapshot) await snapshot.animate([{opacity:1},{opacity:0}],{duration:260,easing:'ease-out',fill:'forwards'}).finished;
+    } finally { snapshot?.remove(); }
+  }
+
+  function shareUrl() {
+    const url = new URL(location.href);
+    url.searchParams.delete('node_id');
+    url.searchParams.set('node', currentNode);
+    return url.href;
+  }
+
+  function toast(message) {
+    const status = document.getElementById('host-status');
+    clearTimeout(toastTimer);
+    status.textContent = message;
+    status.hidden = false;
+    toastTimer = setTimeout(() => { status.hidden = true; }, 4500);
+  }
+
+  function openDialog(dialog) {
+    if (!hostDialogs.some(item => item.open)) {
+      previousFocus = document.activeElement;
+      try {
+        if (previousFocus === frame) previousFocus = frame.contentDocument?.activeElement || frame;
+      } catch { previousFocus = frame; }
+    }
+    for (const other of hostDialogs) {
+      if (other !== dialog && other.open) other.close('switch');
+    }
+    if (!dialog.open) dialog.showModal();
+    dialog.querySelector('[data-close-host]')?.focus({preventScroll: true});
+  }
+
+  function element(tag, text, className) {
+    const node = document.createElement(tag);
+    if (text !== undefined && text !== null) node.textContent = String(text);
+    if (className) node.className = className;
+    return node;
+  }
+
+  function findFair(entry) {
+    if (entry.editorial) return entry;
+    return entry.caseId ? catalog?.[`fair-${entry.caseId}`] : null;
+  }
+
+  function navigateViewer(nodeId,{record=true}={}) {
+    // A pinned object leaves the original viewer on its parent scene. Its
+    // navigateToNode handler intentionally ignores the same scene ID, so use
+    // the existing object toggle to unpin before returning to that scene.
+    if (observedPin && catalog?.[observedPin]?.parentId === nodeId) {
+      frame.contentDocument?.getElementById('label-' + observedPin)?.click();
+    }
+    currentNode = nodeId; observedPin = null;
+    updateAddress(nodeId,{record});
+    send({type: 'navigateToNode', node_id: nodeId});
+  }
+
+  function openShare() {
+    document.getElementById('share-url').value = shareUrl();
+    document.getElementById('share-context').textContent = catalog?.[currentNode]?.label || '赶一场中原庙会';
+    document.getElementById('copy-result').textContent = '';
+    openDialog(shareDialog);
+  }
+
+  async function copyLink() {
+    const field = document.getElementById('share-url');
+    const result = document.getElementById('copy-result');
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+      await navigator.clipboard.writeText(field.value);
+      result.textContent = '已复制当前场景链接';
+    } catch {
+      field.focus();
+      field.select();
+      field.setSelectionRange(0, field.value.length);
+      result.textContent = '链接已选中，可长按或按 Ctrl/Cmd+C 复制';
+    }
+  }
+
+  function saveFeedback(raw) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return;
+    const payload = {
+      nodeId: currentNode,
+      sentiment: typeof raw.sentiment === 'string' ? raw.sentiment.slice(0, 40) : '',
+      categories: Array.isArray(raw.categories) ? raw.categories.filter(value => typeof value === 'string').slice(0, 20).map(value => value.slice(0, 120)) : [],
+      comment: typeof raw.comment === 'string' ? raw.comment.slice(0, 6000) : '',
+      timestamp: new Date().toISOString()
+    };
+    try {
+      let records;
+      try { records = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]'); }
+      catch { records = []; }
+      if (!Array.isArray(records)) records = [];
+      records.push(payload);
+      localStorage.setItem(FEEDBACK_KEY, JSON.stringify(records.slice(-200)));
+      toast('反馈已保存在此浏览器，未发送到服务器。');
+    } catch {
+      toast('当前浏览器无法保存反馈，内容未提交。');
+    }
+  }
+
+  frame.addEventListener('load', async () => {
+    clearTimeout(minimizedTimer);
+    await catalogReady;
+    const detail = frame.contentDocument.createElement('img');
+    detail.id = 'object-picture'; detail.hidden = true;
+    frame.contentDocument.getElementById('main-image-container').append(detail);
+    pictures = window.FairPictures.mount({frame,catalog,onNavigate:switchPicture});
+    const initial = isKnownNode(requestedNode) ? requestedNode : ROOT_ID;
+    currentNode = initial;
+    updateAddress(initial);
+    initializeViewer(initial);
+    observePinnedObjects();
+    resolveViewerReady();
+  });
+
+  window.addEventListener('message', event => {
+    if (event.source !== frame.contentWindow || event.origin !== frameOrigin) return;
+    const message = event.data;
+    if (!message || typeof message !== 'object' || Array.isArray(message)) return;
+    const node = message.node_id || message.nodeId;
+    if (message.type === 'nodeChanged' && isKnownNode(node)) {
+      observedPin = null;
+      currentNode = node;
+      updateAddress(node,{record:true});
+    } else if (message.type === 'DEEP_ZOOM_INTERACTION' && message.action === 'PIN_LEAF' &&
+        isKnownNode(message.childId) && catalog?.[message.childId]?.kind === 'object') {
+      observedPin = message.childId;
+      currentNode = message.childId;
+      updateAddress(currentNode,{record:true});
+    } else if (message.type === 'lightboxShareRequest') {
+      openShare();
+    } else if (message.type === 'lightboxInlineConversationRequest') {
+      showStory();
+    } else if (message.type === 'lightboxFeedbackRequest') {
+      saveFeedback(message.payload);
+    } else if (message.type === 'lightboxFullscreenRequest') {
+      initializeViewer(isKnownNode(node) ? node : currentNode);
+    } else if (message.type === 'lightboxMinimizeRequest') {
+      // The standalone exhibition has no surrounding Gemini page. Its original
+      // close gesture returns to the province view after the viewer's teardown.
+      clearTimeout(minimizedTimer);
+      currentNode = ROOT_ID;
+      updateAddress(ROOT_ID,{record:true});
+      minimizedTimer = setTimeout(() => initializeViewer(ROOT_ID), 300);
+    }
+  });
+
+  window.addEventListener('popstate', () => {
+    const state = new URLSearchParams(location.search);
+    const node = state.get('node') || ROOT_ID;
+    if (isKnownNode(node)) {
+      storyRequestedFor = state.get('path') ? node : null;
+      navigateViewer(node,{record:false});
+    }
+  });
+
+  for (const dialog of hostDialogs) {
+    dialog.querySelectorAll('[data-close-host]').forEach(button => button.addEventListener('click', () => dialog.close()));
+    dialog.addEventListener('click', event => {
+      if (event.target !== dialog) return;
+      const bounds = dialog.getBoundingClientRect();
+      if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
+    });
+    dialog.addEventListener('close', () => {
+      if (dialog.returnValue === 'switch') { dialog.returnValue = ''; return; }
+      try { (previousFocus?.isConnected ? previousFocus : frame).focus({preventScroll: true}); }
+      catch { frame.focus(); }
+      previousFocus = null;
+    });
+  }
+  document.getElementById('copy-link').addEventListener('click', copyLink);
+})();
