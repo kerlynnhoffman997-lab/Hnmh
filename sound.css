@@ -34,3 +34,11 @@
 #fair-sound-dialog button:focus-visible,#fair-sound-dialog input:focus-visible{outline:2px solid #a43f2b;outline-offset:3px}
 @media(max-width:700px){.home-masthead{gap:9px}.home-masthead .fair-sound-button{width:40px;height:40px;padding:0}.home-masthead .fair-sound-button span{display:none}.home-masthead .home-count{white-space:nowrap}.toolbar-right .fair-sound-button{width:38px;height:44px}}
 @media(prefers-reduced-motion:reduce){#fair-sound-dialog input{transition:none!important}#fair-sound-dialog input::before{transition:none!important}}
+@media(max-height:500px) and (orientation:landscape){
+ #fair-sound-dialog{width:min(640px,calc(100% - 28px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)));max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));padding:18px 22px}
+ #fair-sound-dialog[open]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
+ .sound-heading,#sound-master,#sound-state{grid-column:1 / -1}
+ .sound-intro{margin:5px 0 12px}
+ .sound-layer{padding:14px 0 8px}
+ #sound-state{margin-top:10px}
+}

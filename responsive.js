@@ -5,8 +5,10 @@
   // Resizes are observed by the original renderer; no extra camera reset on pan.
   function layout() {
     const w = innerWidth, h = innerHeight;
-    const top = 64, bottom = w <= 700 ? 64 : 56;
-    const available = h - top - bottom;
+    const style = getComputedStyle(document.documentElement);
+    const top = parseFloat(style.getPropertyValue('--fair-toolbar-height')) || 64;
+    const bottom = parseFloat(style.getPropertyValue('--fair-navigation-height')) || 56;
+    const available = Math.max(1,h - top - bottom);
     const fit = document.body.classList.contains('picture-fit');
     const sw = fit ? Math.min(w, available * 16 / 9) : w;
     const sh = fit ? sw * 9 / 16 : available;
@@ -16,6 +18,7 @@
   }
   layout();
   addEventListener('resize', layout);
+  addEventListener('orientationchange', () => requestAnimationFrame(layout));
   const stage = document.getElementById('main-image-container');
   const caption = document.createElement('aside'); caption.id = 'picture-caption';
   caption.innerHTML = '<small></small><h1></h1><div id="caption-reading" tabindex="0" aria-label="画中故事"><p class="caption-summary"></p><div id="caption-more" hidden></div></div><button id="caption-expand" type="button" aria-expanded="false" aria-controls="caption-more">继续读故事 ↓</button>';

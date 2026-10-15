@@ -1,4 +1,6 @@
 /* One image surface: captions belong to the picture, never a reading column. */
+:root {--fair-toolbar-height:64px;--fair-navigation-height:56px}
+@media(max-width:700px) {:root {--fair-navigation-height:64px}}
 html body.adaptive-layout #content-wrapper, html body.adaptive-layout.immersive-active {background:#191e1c !important;--mobile-top-safe-area:0px;--mobile-bottom-safe-area:0px}
 html body.adaptive-layout.immersive-active #main-image-container {inset:auto!important;left:var(--stage-x)!important;top:var(--stage-y)!important;width:var(--stage-w)!important;height:var(--stage-h)!important;max-width:none!important;max-height:none!important;border-radius:0!important;overflow:hidden!important;touch-action:none;background:#191e1c!important}
 html body.adaptive-layout.immersive-active #main-image-container::after {background:none}
@@ -16,7 +18,7 @@ html body.adaptive-layout.immersive-active #text-panel,html body.adaptive-layout
 #object-picture[hidden] {display:none!important}
 .picture-transition {position:absolute!important;max-width:none!important;max-height:none!important;z-index:1002!important;pointer-events:none!important;transform:none!important}
 html body.adaptive-layout.picture-detail #labels-container,html body.adaptive-layout.picture-detail #lines-svg {visibility:hidden!important;pointer-events:none!important}
-html body.adaptive-layout.immersive-active #lightbox-toolbar {top:0!important;height:64px!important;padding:8px 18px!important;gap:12px;background:#191e1c!important;border-bottom:1px solid #ffffff12}
+html body.adaptive-layout.immersive-active #lightbox-toolbar {top:0!important;height:var(--fair-toolbar-height)!important;padding:8px 18px!important;gap:12px;background:#191e1c!important;border-bottom:1px solid #ffffff12}
 html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-feedback-share-group {height:44px;padding:0 4px;gap:0;border-radius:5px}
 html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-feedback-share-group button {height:44px!important}
 html body.adaptive-layout.immersive-active #lightbox-feedback-button {display:none!important}
@@ -128,3 +130,19 @@ html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lig
 
 /* Story captions replace the former source drawer throughout the public flow. */
 html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-feedback-share-group #lightbox-inline-conversation-button {display:none!important}
+
+/* Preserve reading room on short landscape screens without leaving the image. */
+@media(max-height:500px) and (orientation:landscape) {
+ :root {--fair-toolbar-height:56px;--fair-navigation-height:48px}
+ html body.adaptive-layout.immersive-active #lightbox-toolbar {padding:4px 12px!important}
+ #picture-tools {top:8px;right:12px;gap:6px}
+ #picture-tools button {min-height:36px;padding:0 10px;font-size:11px}
+ #picture-caption {padding:16px 22px 8px;max-height:88%}
+ #picture-caption small {font-size:9px}
+ #picture-caption h1 {font-size:20px;line-height:1.3;margin:4px 0 6px}
+ #caption-reading .caption-summary {font-size:12px;line-height:1.65;-webkit-line-clamp:2}
+ #picture-caption.expanded {padding-top:12px}
+ #picture-caption .caption-section p {font-size:12px;line-height:1.75}
+ #caption-expand {min-height:32px;padding-top:4px;margin-top:2px}
+ body.picture-fit #picture-caption {padding:12px 16px 8px;max-height:88%}
+}

@@ -1,4 +1,4 @@
-.fair-home{--home-paper:#f5efdf;--home-ink:#243e34;--home-red:#a43f2b;position:fixed;inset:0;z-index:3;overflow:auto;overscroll-behavior:contain;background:var(--home-paper);color:var(--home-ink);color-scheme:light;font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;isolation:isolate;scrollbar-width:thin;scrollbar-color:#a6ad94 transparent}
+.fair-home{--home-paper:#f5efdf;--home-ink:#243e34;--home-red:#a43f2b;position:fixed;inset:0;z-index:3;overflow:auto;overscroll-behavior:contain;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);background:var(--home-paper);color:var(--home-ink);color-scheme:light;font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;isolation:isolate;scrollbar-width:thin;scrollbar-color:#a6ad94 transparent}
 .fair-home[hidden]{display:none!important}
 .fair-home::before{content:"";position:fixed;inset:0;z-index:-2;background:linear-gradient(180deg,#f5efdf42 0%,#f5efdf38 68%,#f5efdf10 100%),url("assets/homepage-background.webp") center bottom/cover no-repeat;pointer-events:none}
 .fair-home::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 28% 34%,#f5efdfed 0%,#f5efdfb8 24%,#f5efdf00 62%),repeating-linear-gradient(0deg,transparent 0,transparent 3px,#503e1605 4px)}
@@ -109,3 +109,34 @@
 }
 @media(max-width:359px){.home-shell{padding-left:17px;padding-right:17px}.home-eyebrow{font-size:8px}.home-title>span{font-size:54px}.home-count{font-size:7px;gap:3px}.home-count strong{font-size:15px}.home-reading strong{font-size:9px}.home-reading li+li::before{width:8px}.home-map-key{font-size:7px}.home-enter{min-width:122px;gap:6px}.home-fair-title{font-size:21px}.home-selection-foot{gap:10px}}
 @media(prefers-reduced-motion:reduce){.fair-home *{transition:none!important;scroll-behavior:auto!important}.home-preview:hover .home-preview-image{transform:none}.home-enter:hover{transform:none}}
+
+/* A phone turned sideways keeps its map beside the introduction. */
+@media(max-height:500px) and (orientation:landscape){
+ .fair-home::after{background:linear-gradient(90deg,#f5efdff0,#f5efdfd9 58%,#f5efdf8c)}
+ .home-shell{padding:12px 22px 18px;justify-content:flex-start}
+ .home-masthead{margin-bottom:14px;padding-bottom:8px;gap:12px}
+ .home-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.12fr);grid-template-rows:auto 1fr;gap:0 28px;align-items:start}
+ .home-intro{grid-column:1;grid-row:1;padding:0 0 0 3px}
+ .home-title em{font-size:26px;margin-bottom:7px}
+ .home-title>span{font-size:46px;letter-spacing:.03em}
+ .home-verse{font-size:10px;right:0;top:0;gap:5px;padding-right:5px}
+ .home-intro-copy{font-size:11px;line-height:1.7;margin-top:10px;letter-spacing:0}
+ .home-desktop-break{display:none}
+ .home-reading{margin:10px 0 0;gap:5px;justify-content:space-between}
+ .home-reading strong{font-size:9px}.home-reading li{gap:4px}.home-reading li+li::before{width:6px;margin-right:0}
+ .home-map-section{grid-column:2;grid-row:1 / 3;align-self:start}
+ .home-map-heading{padding-bottom:3px;font-size:10px}
+ .home-map-instruction{display:none}
+ .home-map-canvas{height:clamp(220px,calc(100dvh - 140px),300px);aspect-ratio:auto;max-width:none}
+ .home-map-label text{font-size:50px}
+ .home-map-tools{padding-top:5px;gap:6px}.home-map-key{display:none}
+ .home-selection{grid-column:1;grid-row:2;margin-top:15px;max-width:none}
+ .home-selection-kicker{margin-bottom:7px}.home-selected-city{font-size:17px}
+ .home-preview{height:136px;min-height:0;aspect-ratio:auto}
+ .home-preview-caption{left:11px;right:11px;bottom:11px;gap:9px}
+ .home-fair-title{font-size:21px}
+ .home-selection-foot{align-items:flex-start;flex-wrap:wrap;gap:9px;padding-top:10px}
+ .home-selection-description{font-size:10px;max-width:none}
+ .home-enter{min-height:44px;min-width:132px;font-size:10px;padding:9px 11px}
+ .home-footer{margin-top:20px;min-height:76px;padding-top:10px}
+}
