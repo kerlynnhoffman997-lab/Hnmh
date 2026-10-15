@@ -1,0 +1,36 @@
+.fair-sound-button{box-sizing:border-box;flex:none;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:7px;width:44px;height:44px;padding:0;border:1px solid #978c663d;border-radius:6px;background:#f4ecdba6;color:#43573f;cursor:pointer;touch-action:manipulation;font:12px/1.4 "Noto Sans SC","Microsoft YaHei",sans-serif}
+.fair-sound-button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.fair-sound-button[data-playing="true"]::after{content:"";position:absolute;top:7px;right:7px;width:5px;height:5px;border-radius:50%;background:#a6422c}
+.fair-sound-button:hover{background:#e9dfca}
+.fair-sound-button:focus-visible{outline:2px solid #bd8050;outline-offset:3px}
+.home-masthead .home-count{margin-left:auto}
+.home-masthead .fair-sound-button{width:auto;padding:0 12px}
+.toolbar-right .fair-sound-button{border-color:#e5dec41f;background:#ffffff0c;color:#e4e7dc}
+.toolbar-right .fair-sound-button:hover{background:#ffffff1c}
+.toolbar-right .fair-sound-button[data-playing="true"]::after{background:#e2ba73}
+#fair-sound-dialog{box-sizing:border-box;width:min(420px,calc(100% - 28px));max-height:calc(100dvh - 32px);overflow:auto;padding:26px;border-radius:16px;background:#f5efdf;color:#2c4537;border:1px solid #cbbf9e;color-scheme:light;font-family:"Noto Sans SC","Microsoft YaHei",sans-serif}
+#fair-sound-dialog::backdrop{background:#101b19a8;backdrop-filter:blur(4px)}
+.sound-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+#fair-sound-dialog h2{color:#2c4537;font:500 25px/1.4 "STKaiti","KaiTi","Noto Serif SC",serif;letter-spacing:.06em;margin:0}
+.sound-intro{color:#68735a;font-size:12px;line-height:1.8;margin:8px 0 20px}
+#fair-sound-dialog .sound-close{width:40px;height:40px;padding:0;margin:-7px -9px 0 0;border:0;background:transparent;color:#54634c;border-radius:5px;font:27px/1 Arial,sans-serif;cursor:pointer}
+#fair-sound-dialog .sound-close:hover{background:#2c453710}
+#sound-master{width:100%;min-height:46px;border:1px solid #a43f2b;border-radius:5px;background:#a43f2b;color:#fff4dc;font:500 13px/1.4 "Noto Sans SC","Microsoft YaHei",sans-serif;letter-spacing:.08em;cursor:pointer}
+#sound-master[aria-pressed="true"]{background:#2e4939;border-color:#2e4939}
+.sound-layer{padding:20px 0 16px;border-bottom:1px solid #5b654529}
+.sound-layer-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sound-layer-title{display:flex;flex-direction:column;gap:5px}
+.sound-layer-title strong{font-size:14px;font-weight:500;line-height:1.5}
+.sound-layer-title small{font-size:11px;line-height:1.5;color:#74785e}
+#fair-sound-dialog input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:42px;height:24px;flex:none;border:1px solid #90987d;border-radius:20px;padding:2px;background:#c9cbb9;cursor:pointer;margin:0;transition:background .15s}
+#fair-sound-dialog input[type="checkbox"]::before{content:"";display:block;width:18px;height:18px;border-radius:50%;background:#fff9ec;box-shadow:0 1px 3px #162d2440;transition:transform .15s}
+#fair-sound-dialog input[type="checkbox"]:checked{background:#3b5c42;border-color:#3b5c42}
+#fair-sound-dialog input[type="checkbox"]:checked::before{transform:translateX(17px)}
+.sound-volume{display:flex;align-items:center;gap:12px;margin-top:10px}
+#fair-sound-dialog input[type="range"]{flex:1;min-width:0;width:100%;height:32px;padding:0;border:0;border-radius:0;background:transparent;accent-color:#a43f2b;cursor:pointer}
+.sound-volume output{min-width:36px;font-size:11px;text-align:right;color:#667054;font-variant-numeric:tabular-nums}
+.sound-layer:has(input[type="checkbox"]:not(:checked)) .sound-volume{opacity:.5}
+#sound-state{font-size:11px;line-height:1.8;color:#68735a;min-height:20px;margin:16px 0 0}
+#fair-sound-dialog button:focus-visible,#fair-sound-dialog input:focus-visible{outline:2px solid #a43f2b;outline-offset:3px}
+@media(max-width:700px){.home-masthead{gap:9px}.home-masthead .fair-sound-button{width:40px;height:40px;padding:0}.home-masthead .fair-sound-button span{display:none}.home-masthead .home-count{white-space:nowrap}.toolbar-right .fair-sound-button{width:38px;height:44px}}
+@media(prefers-reduced-motion:reduce){#fair-sound-dialog input{transition:none!important}#fair-sound-dialog input::before{transition:none!important}}

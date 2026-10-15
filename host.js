@@ -41,6 +41,7 @@
         }
         catalog = data;
         home = window.FairHome.mount({container:document.getElementById('province-home'),catalog,onEnter:enterFair});
+        window.FairAudio?.mountHome();
         document.querySelector('.home-footer')?.append(document.getElementById('review-qr'));
         home.setVisible(currentNode === ROOT_ID);
         return catalog;
@@ -177,6 +178,7 @@
   }
 
   function updateAddress(nodeId,{record=false}={}) {
+    window.FairAudio?.navigate(catalog?.[nodeId]);
     if (lastPictureNode !== nodeId) {
       lastPictureNode = nodeId; pictureRequest++;
       frame.contentDocument?.querySelectorAll('.picture-transition').forEach(image=>{if(image.dataset.target!==nodeId)image.remove();});
@@ -394,6 +396,7 @@
   frame.addEventListener('load', async () => {
     clearTimeout(minimizedTimer);
     await catalogReady;
+    window.FairAudio?.attachFrame(frame);
     const detail = frame.contentDocument.createElement('img');
     detail.id = 'object-picture'; detail.hidden = true;
     frame.contentDocument.getElementById('main-image-container').append(detail);
