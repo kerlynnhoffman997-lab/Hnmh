@@ -30,7 +30,7 @@
     const worlds = Object.values(catalog || {}).filter(node => node.kind === 'world');
     const byCity = new Map(cities.map(city => [city, worlds.filter(node => node.city === city)
       .sort((a, b) => a.caseId === 'zz-zy' ? -1 : b.caseId === 'zz-zy' ? 1 : a.label.localeCompare(b.label, 'zh-CN'))]));
-    container.classList.add('fair-home');
+    container.classList.add('fair-home','refined-home');
     container.setAttribute('aria-label', '河南庙会地图首页');
     container.innerHTML = `
       <div class="home-shell">
@@ -50,18 +50,21 @@
             </ol>
           </header>
           <section class="home-map-section" aria-label="选择庙会地区">
-            <div class="home-map-heading"><span><i aria-hidden="true">壹</i>展卷 · 寻一处热闹</span><span class="home-map-instruction">已选 · <strong class="home-map-current"></strong></span></div>
+            <div class="home-map-heading"><span><i aria-hidden="true">壹</i>寻一座城</span><span class="home-map-instruction">此行 · <strong class="home-map-current"></strong></span></div>
             <div class="home-map-canvas" aria-busy="true"><p class="home-map-loading" role="status">正在展开河南地图…</p></div>
+            <div class="home-map-peek" hidden aria-hidden="true"><strong></strong><span></span></div>
             <div class="home-map-tools">
               <label class="home-city-picker">选择地区 <select aria-label="选择河南地区"></select><span aria-hidden="true">⌄</span></label>
-              <p class="home-map-key"><i aria-hidden="true"></i><span>点选地图，遇见一方庙会</span></p>
+              <div class="home-city-paging"><button class="home-city-previous" type="button" aria-label="上一座城">←</button><span class="home-city-position" aria-hidden="true"></span><button class="home-city-next" type="button" aria-label="下一座城">→</button></div>
             </div>
+            <div class="home-map-bottom"><p class="home-map-key"><i aria-hidden="true"></i><span>点选一方水土，开启一场相逢</span></p><button class="home-surprise" type="button">随心选一场 <span aria-hidden="true">↗</span></button></div>
           </section>
           <section class="home-selection" aria-label="所选地区的庙会">
-            <p class="home-selection-kicker">此刻去 <span class="home-selected-city"></span><span class="home-fair-count"></span></p>
-            <div class="home-fair-options" role="group" aria-label="选择郑州的庙会"></div>
+            <div class="home-selection-heading"><p class="home-selection-kicker">贰 · 走进 <span class="home-selected-city"></span><span class="home-fair-count"></span></p>
+            <div class="home-fair-options" role="group" aria-label="选择郑州的庙会"></div></div>
             <div class="home-preview">
               <img class="home-preview-image" alt="" decoding="async" width="1664" height="936">
+              <button class="home-preview-open" type="button" aria-label="走进所选庙会"><span aria-hidden="true">↗</span></button>
               <div class="home-preview-caption"><span class="home-preview-mark" aria-hidden="true">此行<br>将至</span><h2 class="home-fair-title"></h2></div>
             </div>
             <div class="home-selection-foot">
@@ -72,18 +75,28 @@
           </section>
         </div>
         <footer class="home-footer"><div class="home-footer-note"><span>一城一会，一步一景。</span><small>从全景到细节，读人与物的故事。<br>国漫场景叙事 · AI 概念插画</small></div></footer>
-      </div>`;
+      </div>
+      <div class="home-mobile-dock" hidden><div><small>此行 · <span class="home-dock-city"></span></small><strong class="home-dock-title"></strong></div><button class="home-dock-enter" type="button">走进庙会 <span aria-hidden="true">↗</span></button></div>`;
     const get = selector => container.querySelector(selector);
     const mapCanvas = get('.home-map-canvas');
     const picker = get('.home-city-picker select');
     const options = get('.home-fair-options');
     const enter = get('.home-enter');
     const status = get('.home-selection-status');
+    const dock = get('.home-mobile-dock'), dockEnter = get('.home-dock-enter');
+    const previewOpen = get('.home-preview-open'), peek = get('.home-map-peek');
+    const cityButtons = [...container.querySelectorAll('.home-city-paging button,.home-surprise')];
     let selectedCity = byCity.get('郑州')?.length ? '郑州' : cities.find(city => byCity.get(city)?.length);
     let selectedWorld = null;
     let isEntering = false;
     let previewRequest = 0;
     let previewAnimation = null;
+    let enterVisible = false;
+    let peekCity = null;
+    const compact = matchMedia('(max-width:700px) and (orientation:portrait)');
+    function updateDock() { dock.hidden = !compact.matches || enterVisible || !selectedWorld || isEntering; }
+    compact.addEventListener('change', updateDock);
+    new IntersectionObserver(entries => { enterVisible = entries[0].intersectionRatio >= .9; updateDock(); },{root:container,threshold:[0,.9,1],rootMargin:'0px 0px -86px 0px'}).observe(enter);
 
     async function updatePreview(world, changed, announce) {
       const request = ++previewRequest;
@@ -95,6 +108,7 @@
       const alt = `${selectedCity} · ${label}全景，AI 概念插画`;
       const src = world ? `assets/worlds/${world.caseId}.webp` : '';
       surface.setAttribute('aria-busy', String(Boolean(world)));
+      previewOpen.disabled = true;
       if (!world) { preview.hidden = true; surface.setAttribute('aria-busy','false'); return; }
       const image = new Image(); image.src = src;
       try { await image.decode(); }
@@ -117,6 +131,7 @@
       get('.home-fair-title').textContent = label;
       get('.home-selection-description').textContent = description;
       surface.setAttribute('aria-busy','false');
+      previewOpen.disabled = isEntering;
       if (announce && changed) {
         window.FairMotion?.reveal(get('.home-fair-title'), {duration:.32});
         window.FairMotion?.reveal(get('.home-selection-description'), {duration:.38});
@@ -142,20 +157,28 @@
       selectedWorld = world;
       void updatePreview(world, changed, announce);
       enter.disabled = isEntering || !world;
-      enter.setAttribute('aria-label', world ? `走进${selectedCity}·${world.label}` : '庙会暂未载入');
+      for (const button of [enter, previewOpen, dockEnter]) {
+        button.disabled = isEntering || !world;
+        button.setAttribute('aria-label', world ? `走进${selectedCity}·${world.label}` : '庙会暂未载入');
+      }
+      previewOpen.disabled = isEntering || !world || get('.home-preview').getAttribute('aria-busy') === 'true' || get('.home-preview-image').hidden;
+      get('.home-dock-city').textContent = selectedCity;
+      get('.home-dock-title').textContent = world?.label || '';
+      updateDock();
       for (const button of options.querySelectorAll('button')) button.setAttribute('aria-pressed', String(button.dataset.world === world?.id));
       if (announce) status.textContent = world ? `已选择${selectedCity}，${world.label}。点击“走进这场庙会”开始探索。` : '暂未载入庙会';
     }
 
-    function selectCity(city, announce = true) {
+    function selectCity(city, announce = true, preferredWorldId = null) {
       const choices = byCity.get(city);
       if (!choices?.length || (isEntering && announce)) return;
-      if (announce && city === selectedCity && selectedWorld) return;
-      const previousChoice = city === selectedCity ? selectedWorld?.id : null;
+      if (announce && city === selectedCity && selectedWorld && !preferredWorldId) return;
+      const previousChoice = preferredWorldId || (city === selectedCity ? selectedWorld?.id : null);
       selectedCity = city;
       picker.value = city;
       get('.home-selected-city').textContent = city;
       get('.home-map-current').textContent = city;
+      get('.home-city-position').textContent = `${String(cities.indexOf(city)+1).padStart(2,'0')} / 18`;
       get('.home-fair-count').textContent = choices.length > 1 ? '· 两场可选' : '';
       options.replaceChildren();
       options.hidden = choices.length < 2;
@@ -180,10 +203,50 @@
         if (region) window.FairMotion?.animate(region, {opacity:[.55,1]}, {duration:.4});
       }
       selectFair(choices.find(world => world.id === previousChoice) || choices[0], announce);
+      hidePeek();
     }
 
+    function hidePeek() {
+      peekCity = null; peek.hidden = true;
+      mapCanvas.querySelectorAll('.is-hovered').forEach(node => node.classList.remove('is-hovered'));
+    }
+    function showPeek(city, target) {
+      if (isEntering || !byCity.get(city)?.length || peekCity === city) return;
+      peekCity = city;
+      mapCanvas.querySelectorAll('[data-city]').forEach(node => node.classList.toggle('is-hovered',node.dataset.city === city));
+      peek.querySelector('strong').textContent = city;
+      peek.querySelector('span').textContent = byCity.get(city).map(world => world.caseId === 'zz-hx' ? '航线里庙会' : world.label).join(' · ');
+      const section = get('.home-map-section').getBoundingClientRect();
+      const label = [...mapCanvas.querySelectorAll('.home-map-label')].find(node=>node.dataset.city === city) || target;
+      const r = label.getBoundingClientRect();
+      peek.hidden = false;
+      peek.style.left = Math.max(8, Math.min(section.width-peek.offsetWidth-8,r.left-section.left+r.width/2-peek.offsetWidth/2))+'px';
+      peek.style.top = Math.max(38,r.top-section.top-peek.offsetHeight-13)+'px';
+      window.FairMotion?.reveal(peek,{duration:.2});
+    }
     picker.addEventListener('change', () => selectCity(picker.value));
-    enter.addEventListener('click', () => { if (selectedWorld && !isEntering) onEnter(selectedWorld.id); });
+    for (const button of [enter,previewOpen,dockEnter]) button.addEventListener('click', () => { if (selectedWorld && !isEntering) onEnter(selectedWorld.id); });
+    for (const [selector,direction] of [['.home-city-previous',-1],['.home-city-next',1]]) {
+      get(selector).addEventListener('click',() => {
+        const available = cities.filter(city=>byCity.get(city)?.length);
+        selectCity(available[(available.indexOf(selectedCity)+direction+available.length)%available.length]);
+      });
+    }
+    get('.home-surprise').addEventListener('click',() => {
+      if (isEntering) return;
+      const choices = worlds.filter(world=>world.id !== selectedWorld?.id);
+      const world = choices[Math.floor(Math.random()*choices.length)];
+      if (world) selectCity(world.city,true,world.id);
+    });
+    mapCanvas.addEventListener('pointerover',event => {
+      const region = event.target.closest('[data-city]');
+      if (region && event.pointerType === 'mouse') showPeek(region.dataset.city,region);
+    });
+    mapCanvas.addEventListener('pointerleave',hidePeek);
+    mapCanvas.addEventListener('focusin',event => { const region=event.target.closest('[data-city]'); if(region)showPeek(region.dataset.city,region); });
+    mapCanvas.addEventListener('focusout',hidePeek);
+    container.addEventListener('scroll',hidePeek,{passive:true});
+    addEventListener('resize',hidePeek,{passive:true});
     mapCanvas.addEventListener('click', event => {
       const region = event.target.closest('[data-city]');
       if (region) selectCity(region.dataset.city);
@@ -191,7 +254,8 @@
     mapCanvas.addEventListener('keydown', event => {
       const region = event.target.closest('[role="button"][data-city]');
       if (!region) return;
-      if (event.key === 'Enter' || event.key === ' ') {
+      if (event.key === 'Escape') hidePeek();
+      else if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         selectCity(region.dataset.city);
       } else if (['ArrowRight','ArrowDown','ArrowLeft','ArrowUp','Home','End'].includes(event.key)) {
@@ -217,6 +281,9 @@
         mapCanvas.setAttribute('aria-busy', 'false');
         selectCity(selectedCity, false);
         window.FairMotion?.reveal(mapCanvas, {duration:.6});
+        for (const [index,region] of [...mapCanvas.querySelectorAll('.home-region')].entries()) {
+          window.FairMotion?.animate(region,{opacity:[0,1]},{duration:.45,delay:index*.018});
+        }
       })
       .catch(() => {
         mapCanvas.setAttribute('aria-busy', 'false');
@@ -226,7 +293,10 @@
     const api = {
       setEntering(entering) {
         isEntering = Boolean(entering);
-        enter.disabled = isEntering || !selectedWorld;
+        for (const button of [enter,previewOpen,dockEnter]) button.disabled = isEntering || !selectedWorld;
+        previewOpen.disabled = isEntering || !selectedWorld || get('.home-preview').getAttribute('aria-busy') === 'true' || get('.home-preview-image').hidden;
+        for (const button of cityButtons) button.disabled = isEntering;
+        hidePeek(); updateDock();
         enter.setAttribute('aria-busy', String(isEntering));
         enter.querySelector('span').textContent = isEntering ? '正在走进…' : '走进这场庙会';
         enter.setAttribute('aria-label', isEntering ? `正在走进${selectedWorld?.label || '庙会'}` :
