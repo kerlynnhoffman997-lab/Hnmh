@@ -1,0 +1,230 @@
+/* Shared paper-and-ink surfaces for the native share and sound dialogs. */
+#host-share,
+#fair-sound-dialog {
+  --dialog-muted: #64705f;
+  box-sizing: border-box;
+  color-scheme: light;
+  width: min(520px, calc(100% - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+  max-width: none;
+  max-height: calc(100svh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  max-height: calc(100dvh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  inset: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  margin: auto;
+  padding: 28px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #b8ab8a transparent;
+  border: 1px solid #bba77c;
+  border-radius: var(--ui-radius, 10px);
+  background: var(--ui-paper, #fbf6eb);
+  color: var(--ui-ink, #263f32);
+  box-shadow: 0 24px 72px #162b2840, 0 2px 8px #162b2814;
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+}
+#fair-sound-dialog { width: min(460px, calc(100% - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))); }
+#host-share::backdrop,
+#fair-sound-dialog::backdrop { background: #172820a3; backdrop-filter: blur(6px); }
+
+#host-share .dialog-heading,
+#fair-sound-dialog .sound-heading { align-items: flex-start; gap: 16px; }
+#host-share .eyebrow {
+  color: var(--ui-accent, #a3432f);
+  font-size: 11px;
+  line-height: 1.7;
+  letter-spacing: .16em;
+  margin: 0 0 8px;
+}
+#host-share #share-heading,
+#fair-sound-dialog #sound-title {
+  margin: 0;
+  color: var(--ui-ink, #263f32);
+  font: 500 25px/1.45 "Noto Serif SC", "STSong", "SimSun", serif;
+  letter-spacing: .05em;
+  text-wrap: balance;
+}
+#host-share .icon-close,
+#fair-sound-dialog .sound-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 var(--ui-control, 44px);
+  width: var(--ui-control, 44px);
+  height: var(--ui-control, 44px);
+  padding: 0;
+  margin: -7px -8px 0 0;
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius, 10px);
+  background: transparent;
+  color: var(--dialog-muted);
+  font: 26px/1 Arial, sans-serif;
+  cursor: pointer;
+}
+#host-share #share-context {
+  margin: 20px 0 0;
+  padding: 10px 13px;
+  border-left: 2px solid var(--ui-gold, #dabb7c);
+  background: #e6dcc82f;
+  color: var(--dialog-muted);
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+#host-share .field-label {
+  margin: 24px 0 9px;
+  color: var(--ui-ink, #263f32);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .06em;
+}
+#host-share #share-url {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid #b8ab8b;
+  border-radius: var(--ui-radius, 10px);
+  background: #fffdf7;
+  color: var(--ui-ink, #263f32);
+  font: 13px/1.7 "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  text-overflow: ellipsis;
+}
+#host-share #share-url::selection { color: #fffaf0; background: #48634e; }
+#host-share .dialog-actions { align-items: center; gap: 20px; margin-top: 20px; }
+#host-share #copy-result {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--dialog-muted);
+  font-size: 12px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+#host-share #copy-link,
+#fair-sound-dialog #sound-master {
+  min-height: var(--ui-control, 44px);
+  padding: 11px 20px;
+  border: 1px solid var(--ui-accent, #a3432f);
+  border-radius: var(--ui-radius, 10px);
+  background: var(--ui-accent, #a3432f);
+  color: #fff9eb;
+  font: 500 13px/1.6 "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  letter-spacing: .06em;
+  cursor: pointer;
+}
+#fair-sound-dialog .sound-intro { margin: 8px 0 22px; color: var(--dialog-muted); font-size: 12px; line-height: 1.85; }
+#fair-sound-dialog #sound-master { width: 100%; }
+#fair-sound-dialog #sound-master[aria-pressed="true"] { border-color: #49634e; background: #e7ede2; color: var(--ui-ink, #263f32); }
+#fair-sound-dialog .sound-layer { padding: 18px 0 12px; border-bottom: 1px solid var(--ui-line, #bbaa8259); }
+#fair-sound-dialog .sound-layer-heading { min-height: 48px; gap: 18px; cursor: pointer; touch-action: manipulation; }
+#fair-sound-dialog .sound-layer-title { gap: 4px; }
+#fair-sound-dialog .sound-layer-title strong { color: var(--ui-ink, #263f32); font-size: 14px; font-weight: 500; line-height: 1.6; }
+#fair-sound-dialog .sound-layer-title small { color: var(--dialog-muted); font-size: 11px; line-height: 1.7; }
+#fair-sound-dialog input[type="checkbox"] {
+  box-sizing: border-box;
+  width: 44px;
+  height: 26px;
+  padding: 2px;
+  border: 1px solid #9c9d84;
+  background: #d9dccd;
+  box-shadow: none;
+}
+#fair-sound-dialog input[type="checkbox"]::before { width: 20px; height: 20px; background: #fffdf7; box-shadow: 0 1px 3px #263f3226; }
+#fair-sound-dialog input[type="checkbox"]:checked { border-color: #49634e; background: #49634e; }
+#fair-sound-dialog input[type="checkbox"]:checked::before { transform: translateX(18px); }
+#fair-sound-dialog .sound-volume { gap: 16px; margin-top: 4px; }
+/* A saved volume remains adjustable when its layer is off. */
+#fair-sound-dialog .sound-layer:has(input[type="checkbox"]:not(:checked)) .sound-volume { opacity: 1; }
+#fair-sound-dialog input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: var(--ui-control, 44px);
+  margin: 0;
+  border-radius: 3px;
+  background: transparent;
+  accent-color: var(--ui-accent, #a3432f);
+  touch-action: pan-y;
+}
+#fair-sound-dialog input[type="range"]::-webkit-slider-runnable-track { height: 4px; border: 0; border-radius: 2px; background: #d3c7ad; }
+#fair-sound-dialog input[type="range"]::-moz-range-track { height: 4px; border: 0; border-radius: 2px; background: #d3c7ad; }
+#fair-sound-dialog input[type="range"]::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--ui-accent, #a3432f); }
+#fair-sound-dialog input[type="range"]::-webkit-slider-thumb {
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -8px;
+  border: 3px solid var(--ui-paper, #fbf6eb);
+  border-radius: 50%;
+  background: var(--ui-accent, #a3432f);
+  box-shadow: 0 0 0 1px #a3432f, 0 2px 4px #263f321c;
+}
+#fair-sound-dialog input[type="range"]::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--ui-paper, #fbf6eb);
+  border-radius: 50%;
+  background: var(--ui-accent, #a3432f);
+  box-shadow: 0 0 0 1px #a3432f, 0 2px 4px #263f321c;
+}
+#fair-sound-dialog .sound-volume output { min-width: 38px; color: var(--dialog-muted); font-size: 12px; }
+#fair-sound-dialog #sound-state {
+  min-height: 22px;
+  margin: 16px 0 0;
+  color: var(--dialog-muted);
+  font-size: 11px;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+}
+
+#host-share button,
+#fair-sound-dialog button { transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; }
+#host-share button:focus-visible,
+#host-share input:focus-visible,
+#fair-sound-dialog button:focus-visible,
+#fair-sound-dialog input:focus-visible { outline: 2px solid var(--ui-accent, #a3432f); outline-offset: 4px; }
+#host-share button:disabled,
+#fair-sound-dialog button:disabled,
+#fair-sound-dialog input:disabled { opacity: .5; cursor: not-allowed; }
+@media (hover: hover) {
+  #host-share .icon-close:hover,
+  #fair-sound-dialog .sound-close:hover { border-color: var(--ui-line, #bbaa8259); background: #e6dcc85c; color: var(--ui-ink, #263f32); }
+  #host-share #copy-link:not(:disabled):hover,
+  #fair-sound-dialog #sound-master:not(:disabled):hover { border-color: #873727; background: #873727; }
+  #fair-sound-dialog #sound-master[aria-pressed="true"]:not(:disabled):hover { border-color: #49634e; background: #d9e4d3; }
+  #host-share #copy-link[data-state="copied"]:not(:disabled):hover { border-color: #3b5745; background: #3b5745; }
+}
+#host-share #copy-link:active,
+#fair-sound-dialog #sound-master:active { border-color: #763124; background: #763124; }
+#fair-sound-dialog #sound-master[aria-pressed="true"]:active { border-color: #49634e; background: #cbdcc4; }
+#host-share #copy-link[data-state="copied"]:active { border-color: #1c3026; background: #1c3026; }
+
+@media (max-width: 480px) {
+  #host-share, #fair-sound-dialog { padding: 22px; }
+  #host-share #share-heading, #fair-sound-dialog #sound-title { font-size: 23px; }
+  #host-share .dialog-actions { gap: 14px; }
+  #host-share #copy-link { padding-inline: 16px; }
+  #host-share #share-url { font-size: 16px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  #fair-sound-dialog { width: min(640px, calc(100% - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))); padding: 18px 24px; }
+  #fair-sound-dialog[open] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+  #fair-sound-dialog .sound-heading, #fair-sound-dialog #sound-master, #fair-sound-dialog #sound-state { grid-column: 1 / -1; }
+  #fair-sound-dialog .sound-intro { margin: 5px 0 12px; }
+  #fair-sound-dialog .sound-layer { padding: 10px 0 4px; }
+  #fair-sound-dialog .sound-layer-heading { gap: 10px; }
+  #fair-sound-dialog #sound-state { margin-top: 10px; }
+  #host-share { padding: 20px 24px; }
+  #host-share #share-context { margin-top: 14px; }
+  #host-share .field-label { margin-top: 16px; }
+  #host-share .dialog-actions { margin-top: 16px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  #host-share[open], #fair-sound-dialog[open] { animation: fair-dialog-in 180ms ease-out both; }
+  @keyframes fair-dialog-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  #host-share button, #fair-sound-dialog button { transition: none; }
+}

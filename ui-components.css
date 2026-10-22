@@ -1,0 +1,181 @@
+/* Shared controls for the province atlas and the illustrated journey. */
+:root {
+  --ui-paper: #fbf6eb;
+  --ui-ink: #263f32;
+  --ui-accent: #a3432f;
+  --ui-gold: #dabb7c;
+  --ui-line: #bbaa8259;
+  --ui-radius: 10px;
+  --ui-control: 44px;
+  --fair-navigation-height: 64px;
+}
+
+/* Keep the illustrated page open and spacious; group only its controls. */
+.refined-home .home-selection { border-radius: 12px; }
+.refined-home .home-preview { border-radius: 7px; }
+.refined-home .home-selection-heading { flex-wrap: wrap; row-gap: 8px; }
+.refined-home .home-fair-options { flex-wrap: wrap; gap: 6px; }
+.refined-home .home-fair-options button {
+  min-height: var(--ui-control); padding: 8px 11px; border-radius: 7px;
+  border-color: var(--ui-line); background: #eee7d857; font-size: 11px;
+}
+.refined-home .home-fair-options button[aria-pressed="true"] {
+  color: #fff8e8; background: var(--ui-ink); border-color: var(--ui-ink);
+  box-shadow: inset 0 -2px 0 #dabb7c80;
+}
+.refined-home .home-masthead .fair-sound-button {
+  min-width: var(--ui-control); height: var(--ui-control); border-radius: var(--ui-radius);
+  border-color: var(--ui-line); background: #fffaf0b3;
+}
+.refined-home .home-masthead .fair-sound-button[data-playing="true"] { background: #e6ecdd; border-color: #728269; }
+.refined-home .home-map-tools { flex-wrap: wrap; row-gap: 8px; }
+.refined-home .home-city-picker select {
+  min-height: var(--ui-control); padding-inline: 12px 30px;
+  border: 1px solid var(--ui-line); border-radius: var(--ui-radius); background: #fffaf0b3;
+}
+.refined-home .home-city-picker > span { right: 10px; }
+.refined-home .home-city-paging { gap: 6px; margin-left: auto; }
+.refined-home .home-city-paging button {
+  width: var(--ui-control); height: var(--ui-control); flex: none;
+  border-radius: var(--ui-radius); border-color: var(--ui-line); background: #fffaf0b3;
+}
+.refined-home .home-surprise { min-height: var(--ui-control); padding-inline: 6px; border-bottom: 0; border-radius: 6px; }
+.refined-home .home-enter, .refined-home .home-dock-enter { border-radius: 8px; }
+.refined-home .home-enter { min-height: 48px; font-size: 12px; }
+.refined-home .home-mobile-dock { border-radius: 12px; }
+.refined-home .home-map-peek { border-radius: 8px; }
+.refined-home button, .refined-home select { touch-action: manipulation; }
+.refined-home button:focus-visible, .refined-home select:focus-visible, .refined-home .review-qr:focus-visible {
+  outline: 2px solid var(--ui-accent); outline-offset: 4px;
+}
+.refined-home .home-preview-open:focus-visible { outline: 3px solid var(--ui-gold); outline-offset: -5px; }
+
+/* The same compact tool family above every scene, with room for touch. */
+html body.adaptive-layout.immersive-active #lightbox-toolbar { background: #20372e !important; border-bottom-color: #dabb7c29; }
+html body.adaptive-layout.immersive-active #lightbox-back-arrow:not(.lightbox-back-arrow--hidden) {
+  min-height: var(--ui-control); padding-inline: 12px; border: 1px solid #e8dcc52e;
+  border-radius: var(--ui-radius); background: #fff8e80a; color: #f6efdf;
+}
+html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right { gap: 8px; }
+html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-feedback-share-group { gap: 0; }
+html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-feedback-share-group #lightbox-share-button {
+  display: inline-flex !important; align-items: center; justify-content: center; gap: 7px;
+  width: 78px !important; height: var(--ui-control) !important; padding: 0 !important;
+  border: 1px solid #e8dcc52e !important; border-radius: var(--ui-radius) !important;
+  background: #fff8e80a !important; color: #f6efdf !important;
+}
+#lightbox-share-button::before {
+  content: ''; width: 17px; height: 17px; background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15V3m-4 4 4-4 4 4M5 12v8h14v-8'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-collapse-button {
+  height: var(--ui-control); width: 88px; border: 1px solid #dfcba5;
+  border-radius: var(--ui-radius); background: #f3e9d4;
+}
+html body.adaptive-layout #lightbox-toolbar .fair-sound-button {
+  width: var(--ui-control); height: var(--ui-control); border-radius: var(--ui-radius);
+  border-color: #e8dcc52e; color: #f6efdf; background: #fff8e80a;
+}
+html body.adaptive-layout #lightbox-toolbar .fair-sound-button[data-playing="true"] { border-color: #dabb7c80; background: #dabb7c1f; }
+html body.adaptive-layout #journey-location small { color: #bcc6b5; }
+html body.adaptive-layout #journey-location strong { color: #fff6e6; }
+html body.adaptive-layout #lightbox-toolbar button:focus-visible,
+html body.adaptive-layout #lightbox-back-arrow:focus-visible { outline: 2px solid var(--ui-gold) !important; outline-offset: 3px; }
+
+/* Hotspots remain anchored in the painting, never turn into a card menu. */
+html body.adaptive-layout.immersive-active .label {
+  min-height: var(--ui-control) !important; box-sizing: border-box;
+  padding: 10px 14px !important; border-radius: var(--ui-radius) !important;
+  font-style: normal !important; background: #fff9edee !important;
+  border-color: #ad9d7e !important; box-shadow: 0 3px 12px #142c2726;
+}
+html body.adaptive-layout.immersive-active .label.pinned { background: var(--ui-accent) !important; border-color: #f4c890 !important; }
+
+/* Image controls and the story share the same surface and state language. */
+body.adaptive-layout #picture-tools button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  min-height: var(--ui-control); padding: 0 13px; border-radius: var(--ui-radius);
+  border: 1px solid #f5e6c74d; background: #20372edb; color: #fff6e5;
+  box-shadow: 0 2px 10px #12251f1a; backdrop-filter: blur(8px);
+  transition: background-color 160ms, border-color 160ms;
+}
+body.adaptive-layout #picture-tools button[aria-pressed="true"] { color: #2b4536; background: #f5e9d2; border-color: #dfcba5; }
+#picture-caption-toggle::before {
+  content: ''; width: 16px; height: 16px; background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linejoin='round'%3E%3Cpath d='M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Zm0 0v15'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+body.adaptive-layout #caption-expand {
+  min-height: var(--ui-control); padding: 9px 13px; margin-top: 9px;
+  border: 1px solid #dec69366; border-radius: var(--ui-radius);
+  color: #f4dcab; background: #dabb7c12; line-height: 1.5;
+  transition: background-color 160ms, border-color 160ms;
+}
+body.adaptive-layout #caption-expand[aria-expanded="true"] { background: #f2e6ce; border-color: #dfcba5; color: #294334; }
+body.adaptive-layout #picture-tools button:focus-visible,
+body.adaptive-layout #caption-expand:focus-visible { outline: 2px solid var(--ui-gold); outline-offset: 3px; }
+
+/* Navigation height is shared with camera layout so controls cannot cover art. */
+body.adaptive-layout #picture-navigation {
+  grid-template-columns: 80px 44px minmax(0, 560px) 44px; column-gap: 16px;
+  background: #20372ef5; border-top-color: #dabb7c29; padding: 7px 18px;
+}
+body.adaptive-layout #picture-navigation .picture-navigation-overview,
+body.adaptive-layout #picture-navigation .picture-navigation-step {
+  min-height: var(--ui-control); height: var(--ui-control); border-radius: var(--ui-radius);
+  border: 1px solid #e8dcc52e; color: #fff6e5; background: #fff8e80a;
+}
+body.adaptive-layout #picture-navigation .picture-navigation-step { width: var(--ui-control); }
+body.adaptive-layout #picture-navigation .picture-navigation-count { color: #c5cdbd; }
+body.adaptive-layout #picture-navigation .picture-navigation-dots { height: 28px; gap: 2px; }
+body.adaptive-layout #picture-navigation .picture-navigation-dot { min-width: 26px; height: 28px; border-radius: 6px; }
+body.adaptive-layout #picture-navigation .picture-navigation-dot[aria-current="step"]::before { width: 18px; height: 5px; background: var(--ui-gold); }
+body.adaptive-layout #picture-navigation button:focus-visible { outline: 2px solid var(--ui-gold); outline-offset: 2px; }
+body.adaptive-layout #picture-navigation button:disabled { opacity: .4; }
+
+#host-status { background: #243d32f5; color: #fff4dc; border: 1px solid #dabb7c80; border-radius: var(--ui-radius); box-shadow: 0 8px 28px #182c2526; }
+#host-share #copy-link[data-state="copied"] { background: var(--ui-ink); border-color: var(--ui-ink); }
+#host-share #copy-link[aria-busy="true"] { opacity: .7; cursor: wait; }
+
+@media (hover: hover) {
+  .refined-home .home-city-paging button:not(:disabled):hover,
+  .refined-home .home-masthead .fair-sound-button:hover,
+  .refined-home .home-city-picker select:hover { background: #e9eddf; border-color: #829077; }
+  .refined-home .home-surprise:not(:disabled):hover { background: #a3432f0b; }
+  .refined-home .home-fair-options button:not(:disabled):not([aria-pressed="true"]):hover { background: #e9eddf; border-color: #829077; }
+  html body.adaptive-layout.immersive-active #lightbox-back-arrow:hover,
+  html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-feedback-share-group #lightbox-share-button:hover,
+  html body.adaptive-layout #lightbox-toolbar .fair-sound-button:hover { background: #fff8e81c !important; border-color: #dabb7c80 !important; }
+  body.adaptive-layout #picture-tools button:not([aria-pressed="true"]):hover,
+  body.adaptive-layout #caption-expand:not([aria-expanded="true"]):hover,
+  body.adaptive-layout #picture-navigation .picture-navigation-step:not(:disabled):hover,
+  body.adaptive-layout #picture-navigation .picture-navigation-overview:not(:disabled):hover { background: #546349; border-color: #dabb7ca6; }
+}
+@media (max-width: 700px) {
+  :root { --fair-navigation-height: 72px; }
+  .refined-home .home-masthead .fair-sound-button { width: var(--ui-control); padding: 0; }
+  .refined-home .home-enter { font-size: 11px; }
+  .refined-home .home-fair-options button { font-size: 10px; padding-inline: 8px; }
+  html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right { gap: 5px; }
+  html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-feedback-share-group #lightbox-share-button { width: var(--ui-control) !important; }
+  #lightbox-share-button::after { display: none; }
+  #lightbox-share-button::before { width: 20px; height: 20px; }
+  html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-collapse-button { width: 48px; }
+  #lightbox-collapse-button::after { content: '地图'; }
+  html body.adaptive-layout.immersive-active #lightbox-back-arrow:not(.lightbox-back-arrow--hidden) { padding-inline: 8px; font-size: 11px; }
+  html body.adaptive-layout.immersive-active .label { padding: 10px !important; }
+  body.adaptive-layout #picture-tools button { padding-inline: 11px; }
+  body.adaptive-layout #picture-navigation { grid-template-columns: 50px 44px minmax(0, 1fr) 44px; column-gap: 6px; padding: 8px 10px; }
+  body.adaptive-layout #picture-navigation .picture-navigation-dots { gap: 0; }
+  body.adaptive-layout #picture-navigation .picture-navigation-dot { min-width: 24px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  :root { --fair-navigation-height: 56px; }
+  body.adaptive-layout #picture-navigation { grid-template-columns: 72px 44px minmax(0, 560px) 44px; column-gap: 10px; padding: 5px 12px; }
+  body.adaptive-layout #picture-navigation .picture-navigation-dots { height: 25px; }
+  body.adaptive-layout #picture-navigation .picture-navigation-dot { height: 25px; }
+  body.adaptive-layout #caption-expand { margin-top: 5px; padding-block: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.adaptive-layout #picture-tools button,
+  body.adaptive-layout #caption-expand { transition: none; }
+}

@@ -374,7 +374,14 @@
     send({type: 'navigateToNode', node_id: nodeId});
   }
 
+  let copyRequest = 0;
   function openShare() {
+    copyRequest++;
+    const button = document.getElementById('copy-link');
+    button.textContent = '复制链接';
+    button.removeAttribute('aria-busy');
+    button.removeAttribute('aria-disabled');
+    delete button.dataset.state;
     document.getElementById('share-url').value = shareUrl();
     document.getElementById('share-context').textContent = catalog?.[currentNode]?.label || '赶一场中原庙会';
     document.getElementById('copy-result').textContent = '';
@@ -384,15 +391,33 @@
   async function copyLink() {
     const field = document.getElementById('share-url');
     const result = document.getElementById('copy-result');
+    const button = document.getElementById('copy-link');
+    if (button.getAttribute('aria-busy') === 'true') return;
+    const request = ++copyRequest;
+    button.setAttribute('aria-busy', 'true');
+    button.setAttribute('aria-disabled', 'true');
+    button.textContent = '正在复制…';
+    result.textContent = '';
     try {
       if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
       await navigator.clipboard.writeText(field.value);
+      if (request !== copyRequest || !shareDialog.open) return;
+      button.textContent = '已复制 ✓';
+      button.dataset.state = 'copied';
       result.textContent = '已复制当前场景链接';
     } catch {
+      if (request !== copyRequest || !shareDialog.open) return;
+      button.textContent = '重新复制';
+      delete button.dataset.state;
       field.focus();
       field.select();
       field.setSelectionRange(0, field.value.length);
       result.textContent = '链接已选中，可长按或按 Ctrl/Cmd+C 复制';
+    } finally {
+      if (request === copyRequest) {
+        button.removeAttribute('aria-busy');
+        button.removeAttribute('aria-disabled');
+      }
     }
   }
 
