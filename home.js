@@ -82,7 +82,51 @@
     let selectedCity = byCity.get('郑州')?.length ? '郑州' : cities.find(city => byCity.get(city)?.length);
     let selectedWorld = null;
     let isEntering = false;
-    const selectionAnimations = [];
+    let previewRequest = 0;
+    let previewAnimation = null;
+
+    async function updatePreview(world, changed, announce) {
+      const request = ++previewRequest;
+      const preview = get('.home-preview-image'), surface = get('.home-preview');
+      previewAnimation?.cancel();
+      surface.querySelectorAll('.home-preview-previous').forEach(image => image.remove());
+      const label = world?.label || '庙会暂未载入';
+      const description = cityTopics[selectedCity] || '';
+      const alt = `${selectedCity} · ${label}全景，AI 概念插画`;
+      const src = world ? `assets/worlds/${world.caseId}.webp` : '';
+      surface.setAttribute('aria-busy', String(Boolean(world)));
+      if (!world) { preview.hidden = true; surface.setAttribute('aria-busy','false'); return; }
+      const image = new Image(); image.src = src;
+      try { await image.decode(); }
+      catch {
+        if (request !== previewRequest) return;
+        preview.hidden = true;
+        get('.home-fair-title').textContent = label;
+        get('.home-selection-description').textContent = description;
+        surface.setAttribute('aria-busy','false');
+        status.textContent = '预览暂未载入，仍可点击“走进这场庙会”重试。';
+        return;
+      }
+      if (request !== previewRequest) return;
+      let previous;
+      if (announce && changed && preview.complete && preview.naturalWidth && !preview.hidden) {
+        previous = preview.cloneNode(); previous.className = 'home-preview-previous'; previous.alt = '';
+        previous.setAttribute('aria-hidden','true'); surface.insertBefore(previous, preview.nextSibling);
+      }
+      preview.src = src; preview.alt = alt; preview.hidden = false;
+      get('.home-fair-title').textContent = label;
+      get('.home-selection-description').textContent = description;
+      surface.setAttribute('aria-busy','false');
+      if (announce && changed) {
+        window.FairMotion?.reveal(get('.home-fair-title'), {duration:.32});
+        window.FairMotion?.reveal(get('.home-selection-description'), {duration:.38});
+      }
+      if (previous) {
+        previewAnimation = window.FairMotion?.animate(previous, {opacity:[1,0],transform:['scale(1)','scale(1.035)']}, {duration:.42});
+        await previewAnimation?.finished;
+        previous.remove();
+      }
+    }
 
     for (const city of cities) {
       const option = document.createElement('option');
@@ -96,27 +140,11 @@
       if (isEntering && announce) return;
       const changed = selectedWorld?.id !== world?.id;
       selectedWorld = world;
-      get('.home-fair-title').textContent = world?.label || '庙会暂未载入';
-      const preview = get('.home-preview-image');
-      preview.hidden = !world;
-      if (world) {
-        preview.src = `assets/worlds/${world.caseId}.webp`;
-        preview.alt = `${selectedCity} · ${world.label}全景，AI 概念插画`;
-      }
-      get('.home-selection-description').textContent = cityTopics[selectedCity] || '';
+      void updatePreview(world, changed, announce);
       enter.disabled = isEntering || !world;
       enter.setAttribute('aria-label', world ? `走进${selectedCity}·${world.label}` : '庙会暂未载入');
       for (const button of options.querySelectorAll('button')) button.setAttribute('aria-pressed', String(button.dataset.world === world?.id));
       if (announce) status.textContent = world ? `已选择${selectedCity}，${world.label}。点击“走进这场庙会”开始探索。` : '暂未载入庙会';
-      if (announce && changed && !matchMedia('(prefers-reduced-motion:reduce)').matches) {
-        selectionAnimations.splice(0).forEach(animation => animation.cancel());
-        for (const selector of ['.home-fair-title','.home-selection-description']) {
-          const element = get(selector);
-          if (typeof element.animate === 'function') selectionAnimations.push(element.animate(
-            [{opacity:.45,transform:'translateY(3px)'},{opacity:1,transform:'translateY(0)'}],
-            {duration:190,easing:'ease-out'}));
-        }
-      }
     }
 
     function selectCity(city, announce = true) {
@@ -147,6 +175,10 @@
         region.classList.toggle('is-selected', active);
         if (region.matches('[role="button"]')) region.setAttribute('aria-pressed', String(active));
       }
+      if (announce) {
+        const region = [...mapCanvas.querySelectorAll('.home-region')].find(item => item.dataset.city === city);
+        if (region) window.FairMotion?.animate(region, {opacity:[.55,1]}, {duration:.4});
+      }
       selectFair(choices.find(world => world.id === previousChoice) || choices[0], announce);
     }
 
@@ -172,6 +204,9 @@
       }
     });
     selectCity(selectedCity, false);
+    for (const [index, selector] of ['.home-intro','.home-selection','.home-map-heading'].entries()) {
+      window.FairMotion?.reveal(get(selector), {duration:.55, delay:index*.06});
+    }
 
     fetch(new URL('assets/province-map.svg', document.baseURI))
       .then(response => { if (!response.ok) throw new Error(`map ${response.status}`); return response.text(); })
@@ -181,6 +216,7 @@
         mapCanvas.replaceChildren(document.importNode(documentSVG.documentElement, true));
         mapCanvas.setAttribute('aria-busy', 'false');
         selectCity(selectedCity, false);
+        window.FairMotion?.reveal(mapCanvas, {duration:.6});
       })
       .catch(() => {
         mapCanvas.setAttribute('aria-busy', 'false');

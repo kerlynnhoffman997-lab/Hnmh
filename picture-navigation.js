@@ -2,7 +2,7 @@
 (() => {
   const mounted = new WeakMap();
 
-  function mount({frame, catalog, onNavigate}) {
+  function mount({frame, catalog, onNavigate, onPreload}) {
     if (!frame || frame.tagName !== 'IFRAME') throw new TypeError('FairPictures requires an iframe');
     if (typeof onNavigate !== 'function') throw new TypeError('FairPictures requires onNavigate');
     if (mounted.has(frame)) return mounted.get(frame);
@@ -23,6 +23,8 @@
     let worldId = null;
     let pending = false;
     let sequenceKey = '';
+    let prefetchedNode = null;
+    let prefetchTimer;
 
     function findWorld(entry) {
       if (catalog?.[entry?.worldId]?.kind === 'world') return catalog[entry.worldId];
@@ -101,6 +103,12 @@
         if (selected) dot.setAttribute('aria-current', 'step');
         else dot.removeAttribute('aria-current');
       }
+      if (prefetchedNode !== currentNodeId && !pending && onPreload && !navigator.connection?.saveData && !/2g/.test(navigator.connection?.effectiveType || '')) {
+        prefetchedNode = currentNodeId;
+        clearTimeout(prefetchTimer);
+        const nearby = [currentSequence[currentIndex+1],currentSequence[currentIndex-1]].filter(Boolean);
+        prefetchTimer = setTimeout(() => { for (const id of nearby) void onPreload(id).catch(()=>{}); }, 650);
+      }
     }
 
     async function navigate(nodeId) {
@@ -110,7 +118,9 @@
       announcement.textContent = `正在切换到${catalog[nodeId].label}`;
       try {
         // The host owns image readiness and transitions; do not race its camera.
-        await onNavigate(nodeId);
+        const index = currentSequence.indexOf(nodeId);
+        const direction = index >= 0 ? (index < currentIndex ? 'previous' : 'next') : undefined;
+        await onNavigate(nodeId,{direction});
       } catch {
         announcement.textContent = '图片暂未切换，请重试。';
       } finally {
@@ -135,6 +145,47 @@
       if (control.disabled) return;
       event.preventDefault();
       void navigate(currentSequence[currentIndex + (event.key === 'ArrowLeft' ? -1 : 1)]);
+    }
+
+    function attachSwipe(doc) {
+      const stage = doc.getElementById('main-image-container');
+      if (!stage) return;
+      let start = null;
+      const eligible = event => !pending && !frame.inert && !frame.hidden &&
+        !hasDialog(hostDocument) && !hasDialog(doc) &&
+        (doc.body.classList.contains('picture-fit') || doc.body.classList.contains('picture-detail')) &&
+        !event.target.closest?.('#picture-caption,#picture-tools,.label,button,a,[role="button"],[id^="dot-"],[id^="line-"]');
+      stage.addEventListener('touchstart',event => {
+        start = null;
+        if (event.touches.length !== 1 || !eligible(event)) return;
+        const touch = event.touches[0];
+        start = {x:touch.clientX,y:touch.clientY,id:touch.identifier,node:currentNodeId,time:performance.now()};
+        event.stopImmediatePropagation();
+        if (event.cancelable) event.preventDefault();
+      },{capture:true,passive:false});
+      stage.addEventListener('touchmove',event => {
+        if (!start) return;
+        if (event.touches.length !== 1) { start = null; return; }
+        event.stopImmediatePropagation();
+        if (event.cancelable) event.preventDefault();
+      },{capture:true,passive:false});
+      stage.addEventListener('touchend',event => {
+        if (!start) return;
+        const gesture = start; start = null;
+        event.stopImmediatePropagation();
+        if (event.cancelable) event.preventDefault();
+        const touch = [...event.changedTouches].find(t => t.identifier === gesture.id);
+        if (!touch || gesture.node !== currentNodeId || !eligible(event)) return;
+        const dx = touch.clientX-gesture.x, dy = touch.clientY-gesture.y;
+        if (Math.abs(dx) < Math.max(46,stage.clientWidth*.12) || Math.abs(dx) < Math.abs(dy)*1.5 || performance.now()-gesture.time > 1400) return;
+        const id = currentSequence[currentIndex+(dx < 0 ? 1 : -1)];
+        if (id) void navigate(id);
+      },{capture:true,passive:false});
+      stage.addEventListener('touchcancel',() => { start = null; },{capture:true,passive:true});
+      doc.defaultView.addEventListener('resize',() => { start = null; });
+      const hint = doc.createElement('div'); hint.id = 'picture-swipe-hint';
+      hint.textContent = '左右轻划 · 换一幅画'; hint.setAttribute('aria-hidden','true');
+      doc.body.append(hint);
     }
 
     function attach() {
@@ -183,6 +234,7 @@
       // Keep pagination events out of the original image gesture handlers.
       for (const type of ['pointerdown','mousedown','touchstart','click']) navigation.addEventListener(type, event => event.stopPropagation());
       doc.body.append(navigation);
+      attachSwipe(doc);
       doc.addEventListener('keydown', onKeyDown);
       sequenceKey = '';
       render();

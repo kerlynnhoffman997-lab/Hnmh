@@ -36,12 +36,14 @@
   document.getElementById('picture-caption-toggle').addEventListener('click',event=>{
     caption.hidden = !caption.hidden;
     event.currentTarget.setAttribute('aria-pressed',String(!caption.hidden));
+    if (!caption.hidden) window.parent.FairMotion?.reveal(caption,{duration:.3});
   });
   document.getElementById('caption-expand').addEventListener('click',event=>{
     const expanded = !caption.classList.contains('expanded');
     if (expanded && document.body.classList.contains('picture-fit')) document.getElementById('picture-fit').click();
     caption.classList.toggle('expanded',expanded);
     document.getElementById('caption-more').hidden = !expanded;
+    if (expanded) window.parent.FairMotion?.reveal(document.getElementById('caption-more'),{duration:.32});
     event.currentTarget.setAttribute('aria-expanded',String(expanded));
     event.currentTarget.textContent = expanded ? '收起故事 ↑' : '继续读故事 ↓';
     if (!expanded) document.getElementById('caption-reading').scrollTop = 0;

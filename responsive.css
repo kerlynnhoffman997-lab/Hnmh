@@ -16,7 +16,7 @@ html body.adaptive-layout.immersive-active #text-panel,html body.adaptive-layout
 #picture-tools button[aria-pressed=true] {border-color:#dcc494;background:#394233db}
 #object-picture {position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1001;background:#191e1c;pointer-events:none}
 #object-picture[hidden] {display:none!important}
-.picture-transition {position:absolute!important;max-width:none!important;max-height:none!important;z-index:1002!important;pointer-events:none!important;transform:none!important}
+.picture-transition {position:absolute!important;max-width:none!important;max-height:none!important;z-index:1002!important;pointer-events:none!important;will-change:transform,opacity}
 html body.adaptive-layout.picture-detail #labels-container,html body.adaptive-layout.picture-detail #lines-svg {visibility:hidden!important;pointer-events:none!important}
 html body.adaptive-layout.immersive-active #lightbox-toolbar {top:0!important;height:var(--fair-toolbar-height)!important;padding:8px 18px!important;gap:12px;background:#191e1c!important;border-bottom:1px solid #ffffff12}
 html body.adaptive-layout.immersive-active #lightbox-toolbar .toolbar-right #lightbox-feedback-share-group {height:44px;padding:0 4px;gap:0;border-radius:5px}
@@ -29,6 +29,7 @@ html body.adaptive-layout.immersive-active .toolbar-right {flex:none}
 html body.adaptive-layout.immersive-active #mini-map-container,html body.adaptive-layout.immersive-active #onboarding-tooltip {display:none!important}
 html body.adaptive-layout.immersive-active .label {font-family:'Noto Sans SC','Microsoft YaHei',sans-serif!important;background:#fcf7e8e8!important;border:1px solid #79796970!important;color:#28352a!important;min-height:38px!important;height:auto!important;white-space:nowrap;padding:6px 12px!important;backdrop-filter:blur(8px)!important}
 html body.adaptive-layout.immersive-active .label-line {stroke:#fff7dc!important}
+html body.adaptive-layout.immersive-active .label:focus-visible {outline:3px solid #d7b46a!important;outline-offset:4px;box-shadow:0 0 0 6px #191e1c80}
 html body.adaptive-layout.immersive-active #landscape-nudge-overlay {display:none!important}
 html body.adaptive-layout.immersive-active.landscape-nudge-active #lightbox-toolbar,html body.adaptive-layout.immersive-active.landscape-nudge-active #lightbox-toolbar *,html body.adaptive-layout.immersive-active.landscape-nudge-active #labels-container {opacity:1!important;pointer-events:auto!important}
 @media(max-width:700px) {

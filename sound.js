@@ -10,7 +10,8 @@
   } catch { /* Private browsing can disable storage; sound still works. */ }
 
   let context, master, musicBus, effectsBus, musicBuffer, musicSource, loading;
-  let error = '', lastNode, lastEffect = -Infinity, effectCount = 0, suspendTimer, previousFocus;
+  let error = '', lastNode, lastEntry, lastEffect = -Infinity, effectCount = 0, suspendTimer, previousFocus;
+  let musicStopTimer, musicStartedAt = 0, musicOffset = 0, reading = false, musicFormat = '', lastCue = '';
   const buttons = new Set(), documents = new WeakSet();
   const dialog = document.createElement('dialog');
   dialog.id = 'fair-sound-dialog';
@@ -19,7 +20,7 @@
     <div class="sound-heading"><div><h2 id="sound-title">听见庙会</h2><p class="sound-intro">一曲轻乐，伴你走进街巷烟火。</p></div><button type="button" class="sound-close" aria-label="关闭声音设置">×</button></div>
     <button type="button" id="sound-master" aria-pressed="false">开启声音</button>
     <section class="sound-layer" aria-label="背景音乐设置">
-      <label class="sound-layer-heading" for="sound-music"><span class="sound-layer-title"><strong>背景音乐</strong><small>轻柔拨弦 · 循环陪伴</small></span><input id="sound-music" type="checkbox" role="switch" aria-label="背景音乐"></label>
+      <label class="sound-layer-heading" for="sound-music"><span class="sound-layer-title"><strong>背景音乐</strong><small>轻柔拨弦 · 读故事时自动轻下来</small></span><input id="sound-music" type="checkbox" role="switch" aria-label="背景音乐"></label>
       <div class="sound-volume"><input id="sound-music-volume" type="range" min="0" max="100" step="1" aria-label="背景音乐音量"><output for="sound-music-volume" id="sound-music-value"></output></div>
     </section>
     <section class="sound-layer" aria-label="交互音效设置">
@@ -46,15 +47,17 @@
       control('sound-'+type+'-volume').value = value;
       control('sound-'+type+'-value').textContent = value + '%';
     }
-    control('sound-state').textContent = error || (!prefs.enabled ? '由你开启声音；音量设置会保存在此浏览器。' : !running ? '声音已记住，轻触页面即可继续。' : !prefs.music && !prefs.effects ? '两类声音均已关闭，可分别开启。' : loading && prefs.music ? '正在载入背景音乐…' : '声音已开启 · 切换到后台时自动暂停。');
+    control('sound-state').textContent = error || (!prefs.enabled ? '由你开启声音；音量设置会保存在此浏览器。' : !running ? '声音已记住，轻触页面即可继续。' : !prefs.music && !prefs.effects ? '两类声音均已关闭，可分别开启。' : loading && prefs.music ? '正在载入背景音乐…' : reading && prefs.music ? '读故事时轻一些，收起后缓缓恢复。' : '声音已开启 · 切换到后台时自动暂停。');
   }
-  function ramp(bus,value,seconds=.06) {
+  function ramp(bus,value,seconds=.16) {
     if (!context || !bus) return;
     const at = context.currentTime;
-    bus.gain.cancelScheduledValues(at);
-    bus.gain.setValueAtTime(bus.gain.value,at);
-    bus.gain.setTargetAtTime(value,at,seconds);
+    // Hold the current envelope before replacing it; quick taps must not click.
+    if (bus.gain.cancelAndHoldAtTime) bus.gain.cancelAndHoldAtTime(at);
+    else { const held = bus.gain.value; bus.gain.cancelScheduledValues(at); bus.gain.setValueAtTime(held,at); }
+    bus.gain.linearRampToValueAtTime(value,at+seconds);
   }
+  function musicLevel() { return prefs.music ? prefs.musicVolume*(reading ? .48 : 1) : 0; }
   function ensureContext() {
     if (context) return true;
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -72,30 +75,44 @@
     if (musicBuffer) return musicBuffer;
     if (loading) return loading;
     loading = (async () => {
-      const response = await fetch(new URL('assets/audio/fair-background.wav',document.baseURI));
-      if (!response.ok) throw new Error('Music unavailable');
-      return context.decodeAudioData(await response.arrayBuffer());
+      for (const format of ['mp3','wav']) {
+        try {
+          const response = await fetch(new URL('assets/audio/fair-background.'+format,document.baseURI));
+          if (!response.ok) throw new Error('Music unavailable');
+          const buffer = await context.decodeAudioData(await response.arrayBuffer());
+          musicFormat = format; return buffer;
+        } catch { /* The original PCM is a fallback for a failed compressed decode. */ }
+      }
+      throw new Error('Music unavailable');
     })();
     render();
     try { musicBuffer = await loading; return musicBuffer; }
     finally { loading = null; render(); }
   }
   async function startMusic() {
-    if (!active() || !prefs.music || !prefs.musicVolume || musicSource) return;
+    clearTimeout(musicStopTimer);
+    if (!active() || !prefs.music || !prefs.musicVolume) return;
+    if (musicSource) { ramp(musicBus,musicLevel(),.4); return; }
     try {
       const buffer = await loadMusic();
       if (!active() || !prefs.music || !prefs.musicVolume || musicSource) return;
       musicSource = context.createBufferSource(); musicSource.buffer = buffer; musicSource.loop = true;
       musicSource.connect(musicBus); musicBus.gain.value = 0;
-      musicSource.start(); ramp(musicBus,prefs.musicVolume,.45); render();
+      musicStartedAt = context.currentTime;
+      musicSource.start(0,musicOffset % buffer.duration);
+      ramp(musicBus,musicLevel(),.7); render();
     } catch { error = '背景音乐暂未载入，交互音效仍可使用；关闭再开启音乐可重试。'; render(); }
   }
   function stopMusic() {
     if (!musicSource) return;
-    const source = musicSource; musicSource = null;
-    // Stop the old loop before a rapid re-enable can create its replacement.
-    source.stop(); source.disconnect();
-    ramp(musicBus,0,.025);
+    clearTimeout(musicStopTimer); ramp(musicBus,0,.16);
+    // One source survives a quick off/on. A longer pause resumes its playhead.
+    musicStopTimer = setTimeout(() => {
+      if (!musicSource || (prefs.music && prefs.musicVolume)) return;
+      musicOffset = (musicOffset + context.currentTime-musicStartedAt) % musicBuffer.duration;
+      const source = musicSource; musicSource = null;
+      source.stop(); source.disconnect(); render();
+    },180);
   }
   async function resume() {
     if (!prefs.enabled || document.hidden || !ensureContext()) return;
@@ -104,8 +121,8 @@
       await context.resume();
       // A mute click or a visibility change can happen during resume/decode.
       if (!prefs.enabled || document.hidden) { await context.suspend(); return; }
-      ramp(master,1,.08); ramp(effectsBus,prefs.effects ? prefs.effectsVolume : 0);
-      if (prefs.music) { ramp(musicBus,prefs.musicVolume); void startMusic(); }
+      ramp(master,1,.25); ramp(effectsBus,prefs.effects ? prefs.effectsVolume : 0);
+      if (prefs.music) void startMusic();
       render();
     } catch { error = '轻触“开启声音”后再试一次。'; prefs.enabled = false; save(); render(); }
   }
@@ -113,16 +130,16 @@
     prefs.enabled = value; error = ''; save();
     if (value) void resume();
     else {
-      ramp(master,0,.015); clearTimeout(suspendTimer);
-      suspendTimer = setTimeout(() => { if (!prefs.enabled) context?.suspend().catch(()=>{}); },100);
+      ramp(master,0,.12); clearTimeout(suspendTimer);
+      suspendTimer = setTimeout(() => { if (!prefs.enabled) context?.suspend().catch(()=>{}); },150);
     }
     render();
   }
-  function pluck(frequency,time,volume=.18,duration=.55) {
+  function pluck(frequency,time,volume=.1,duration=.48) {
     const oscillator = context.createOscillator(), gain = context.createGain(), filter = context.createBiquadFilter();
     oscillator.type = 'triangle'; oscillator.frequency.value = frequency;
-    filter.type = 'lowpass'; filter.frequency.setValueAtTime(2200,time); filter.frequency.exponentialRampToValueAtTime(650,time+duration);
-    gain.gain.setValueAtTime(0,time); gain.gain.linearRampToValueAtTime(volume,time+.006);
+    filter.type = 'lowpass'; filter.frequency.setValueAtTime(1650,time); filter.frequency.exponentialRampToValueAtTime(480,time+duration);
+    gain.gain.setValueAtTime(0,time); gain.gain.linearRampToValueAtTime(volume,time+.012);
     gain.gain.exponentialRampToValueAtTime(.0001,time+duration);
     oscillator.connect(filter).connect(gain).connect(effectsBus);
     oscillator.start(time); oscillator.stop(time+duration+.02);
@@ -131,20 +148,20 @@
   function drum(time) {
     const oscillator = context.createOscillator(), gain = context.createGain();
     oscillator.frequency.setValueAtTime(135,time); oscillator.frequency.exponentialRampToValueAtTime(65,time+.16);
-    gain.gain.setValueAtTime(0,time); gain.gain.linearRampToValueAtTime(.2,time+.008); gain.gain.exponentialRampToValueAtTime(.0001,time+.28);
+    gain.gain.setValueAtTime(0,time); gain.gain.linearRampToValueAtTime(.1,time+.014); gain.gain.exponentialRampToValueAtTime(.0001,time+.28);
     oscillator.connect(gain).connect(effectsBus); oscillator.start(time); oscillator.stop(time+.3);
     oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
   }
   function effect(kind='select') {
     if (!active() || !prefs.effects || !prefs.effectsVolume) return;
     const at = context.currentTime;
-    if (at-lastEffect < .12) return;
-    lastEffect = at; effectCount++;
-    if (kind === 'world') { drum(at); pluck(293.66,at+.045,.13,.7); pluck(440,at+.14,.1,.75); }
-    else if (kind === 'scene') { pluck(440,at,.15); pluck(587.33,at+.075,.1); }
-    else if (kind === 'object') { pluck(587.33,at,.14); pluck(659.25,at+.09,.075); }
-    else if (kind === 'root') { pluck(440,at,.14); pluck(293.66,at+.09,.1); }
-    else pluck(kind === 'story' ? 440 : 493.88,at,.13,.35);
+    if (at-lastEffect < .16) return;
+    lastEffect = at; lastCue = kind; effectCount++;
+    if (kind === 'world') { drum(at); pluck(293.66,at+.045,.09,.65); pluck(440,at+.14,.065,.65); }
+    else if (kind === 'scene' || kind === 'next') { pluck(440,at,.09); pluck(587.33,at+.075,.065); }
+    else if (kind === 'object') { pluck(587.33,at,.085); pluck(659.25,at+.09,.05); }
+    else if (kind === 'root' || kind === 'back') { pluck(440,at,.085); pluck(293.66,at+.09,.065); }
+    else pluck(kind === 'story' ? 440 : 493.88,at,.075,.3);
   }
   function wireDocument(doc) {
     if (documents.has(doc)) return;
@@ -186,8 +203,8 @@
     });
     control('sound-'+type+'-volume').addEventListener('input',event => {
       prefs[type+'Volume'] = Number(event.target.value)/100;
-      ramp(type === 'music' ? musicBus : effectsBus,prefs[type] ? prefs[type+'Volume'] : 0);
-      if (type === 'music' && prefs.music) void startMusic();
+      ramp(type === 'music' ? musicBus : effectsBus,type === 'music' ? musicLevel() : prefs.effects ? prefs.effectsVolume : 0);
+      if (type === 'music' && prefs.music) { if (prefs.musicVolume) void startMusic(); else stopMusic(); }
       save(); render();
     });
     control('sound-'+type+'-volume').addEventListener('change',() => { if (type === 'effects') effect('select'); });
@@ -220,15 +237,30 @@
       }
       const toolbar = doc.querySelector('.toolbar-right');
       if (toolbar && !toolbar.querySelector('.fair-sound-button')) toolbar.prepend(makeButton(doc));
+      const caption = doc.getElementById('picture-caption');
+      if (caption && !caption.dataset.audioObserved) {
+        caption.dataset.audioObserved = 'true';
+        const updateReading = () => {
+          const next = !caption.hidden && caption.classList.contains('expanded') && lastEntry?.kind !== 'root';
+          if (reading === next) return;
+          reading = next; ramp(musicBus,musicLevel(),reading ? .5 : .85); render();
+        };
+        new MutationObserver(updateReading).observe(caption,{attributes:true,attributeFilter:['class','hidden']});
+      }
       wireDocument(doc); render();
     },
-    navigate(entry) {
+    navigate(entry,options={}) {
       if (!entry || entry.id === lastNode) return;
-      const previous = lastNode; lastNode = entry.id;
-      if (previous) effect(entry.kind);
+      const previous = lastEntry; lastNode = entry.id; lastEntry = entry;
+      if (reading) { reading = false; ramp(musicBus,musicLevel(),.85); render(); }
+      if (previous) {
+        const rank = {root:0,world:1,scene:2,object:3};
+        const backward = options.direction === 'previous' || options.direction === -1 || entry.id === previous.parentId || rank[entry.kind] < rank[previous.kind];
+        effect(backward ? 'back' : options.direction === 'next' ? 'next' : entry.kind);
+      }
     },
     // Read-only diagnostic state for browser QA; no audio is started by inspection.
-    readState() { return {...prefs,context:context?.state || 'uninitialized',playing:Boolean(musicSource && active() && prefs.music && prefs.musicVolume),loading:Boolean(loading),effectsPlayed:effectCount,node:lastNode,musicDuration:musicBuffer?.duration || 0,error}; }
+    readState() { return {...prefs,context:context?.state || 'uninitialized',playing:Boolean(musicSource && active() && prefs.music && prefs.musicVolume),loading:Boolean(loading),effectsPlayed:effectCount,node:lastNode,musicDuration:musicBuffer?.duration || 0,musicFormat,reading,musicGain:musicBus?.gain.value || 0,musicPosition:musicBuffer ? (musicOffset+(musicSource ? context.currentTime-musicStartedAt : 0)) % musicBuffer.duration : 0,lastCue,error}; }
   };
   render();
 })();

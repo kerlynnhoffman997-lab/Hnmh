@@ -1,0 +1,36 @@
+{
+  "project": "Motion mini",
+  "version": "14.6.0",
+  "source": "https://github.com/motiondivision/motion/tree/v14.6.0",
+  "upstreamTagCommit": "3397236ea600094f09513fbb2bfb084dc95f5982",
+  "npmPackageGitHead": "c624ce8e907d5668280b8c832f2ab93ba3462ab5",
+  "entry": "motion/mini",
+  "export": "window.Motion.animate",
+  "file": "motion-mini.js",
+  "bytes": 9412,
+  "gzipBytes": 3757,
+  "sha256": "d802c17c2205b6ff1b04524aa7f006bb9991ef8f860fad1df1fab37be278062b",
+  "packages": [
+    {
+      "name": "motion-utils",
+      "version": "14.6.0",
+      "license": "MIT"
+    },
+    {
+      "name": "motion-dom",
+      "version": "14.6.0",
+      "license": "MIT"
+    },
+    {
+      "name": "framer-motion",
+      "version": "14.6.0",
+      "license": "MIT"
+    },
+    {
+      "name": "motion",
+      "version": "14.6.0",
+      "license": "MIT"
+    }
+  ],
+  "builder": "esbuild@0.27.4"
+}

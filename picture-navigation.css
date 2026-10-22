@@ -16,6 +16,15 @@
 .picture-navigation-dots{display:flex;justify-content:center;align-items:center;gap:3px;height:19px}
 #picture-navigation .picture-navigation-dot{display:flex;align-items:center;justify-content:center;min-width:22px;height:19px;padding:0;border:0;background:transparent;border-radius:3px}
 .picture-navigation-dot::before{content:"";display:block;width:5px;height:5px;border-radius:50%;background:#9ba58e66}
+.picture-navigation-dot::before{transition:width .24s ease,background-color .24s ease}
+#picture-navigation button{transition:background-color .18s,scale .18s}
+#picture-navigation button:active:not(:disabled){scale:.94}
+#picture-navigation[aria-busy="true"]::before{content:"";position:absolute;left:0;top:-1px;width:100%;height:2px;background:linear-gradient(90deg,transparent,#d7b46a,transparent);transform-origin:left;animation:picture-loading 1.2s ease-in-out infinite}
+@keyframes picture-loading{0%,100%{opacity:.2;scale:.3 1}50%{opacity:1;scale:1 1}}
+#picture-swipe-hint{display:none;position:fixed;z-index:1199;bottom:calc(var(--fair-navigation-height,64px) + 7px);right:12px;padding:4px 8px;border-radius:3px;background:#191e1cc7;color:#f0dcaf;font:9px 'Microsoft YaHei',sans-serif;letter-spacing:.07em;pointer-events:none}
+@media(pointer:coarse){body.picture-fit #picture-swipe-hint,body.picture-detail #picture-swipe-hint{display:block}}
+body:has(#picture-caption.expanded:not([hidden])) #picture-swipe-hint{display:none}
+@media(prefers-reduced-motion:reduce){#picture-navigation button,.picture-navigation-dot::before{transition:none;scale:1!important}#picture-navigation[aria-busy="true"]::before{animation:none;opacity:.6}}
 .picture-navigation-dot:not(:disabled):hover::before{background:#eee4c9}
 .picture-navigation-dot[aria-current="step"]::before{width:16px;border-radius:3px;background:#d7b46a}
 #picture-navigation[aria-busy="true"] .picture-navigation-dot::before{opacity:.45}

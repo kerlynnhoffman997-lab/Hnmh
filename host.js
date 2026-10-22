@@ -25,6 +25,7 @@
   let pictures = null;
   let pictureRequest = 0;
   let lastPictureNode = null;
+  const imageCache = new Map();
   let resolveViewerReady;
   const viewerReady = new Promise(resolve => { resolveViewerReady = resolve; });
   const reduceMotion = () => matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -81,7 +82,8 @@
     if (!parent) return;
     const zoomBack = frame.contentDocument?.querySelector('.mobile-breadcrumb-zoom-out.active');
     if (catalog[currentNode].kind === 'scene' && zoomBack) zoomBack.click();
-    else navigateViewer(parent);
+    else if (catalog[parent]?.kind === 'root') navigateViewer(parent);
+    else void switchPicture(parent,{direction:'previous'}).catch(()=>{});
   }
 
   function updateJourney(nodeId) {
@@ -132,7 +134,7 @@
       const surface = document.getElementById('province-home');
       surface.inert = true;
       if (!reduceMotion()) {
-        const animation = surface.animate([{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(1.015)'}],{duration:240,easing:'cubic-bezier(.22,.61,.36,1)',fill:'forwards'});
+        const animation = window.FairMotion.animate(surface,{opacity:[1,0],transform:['scale(1)','scale(1.025)']},{duration:.48});
         await animation.finished; home.setVisible(false); animation.cancel();
       } else home.setVisible(false);
       frame.inert = false; frame.focus({preventScroll:true});
@@ -177,8 +179,8 @@
     pinnedObserver.observe(panel, {subtree: true, childList: true, characterData: true});
   }
 
-  function updateAddress(nodeId,{record=false}={}) {
-    window.FairAudio?.navigate(catalog?.[nodeId]);
+  function updateAddress(nodeId,{record=false,direction}={}) {
+    window.FairAudio?.navigate(catalog?.[nodeId],{direction});
     if (lastPictureNode !== nodeId) {
       lastPictureNode = nodeId; pictureRequest++;
       frame.contentDocument?.querySelectorAll('.picture-transition').forEach(image=>{if(image.dataset.target!==nodeId)image.remove();});
@@ -188,7 +190,7 @@
     home?.setVisible(nodeId === ROOT_ID || entering);
     frame.inert = nodeId === ROOT_ID || entering;
     if (returning) {
-      if (!reduceMotion()) surface.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:220,easing:'ease-out'});
+      window.FairMotion?.reveal(surface,{duration:.4});
       surface.querySelector('.home-enter')?.focus({preventScroll:true});
     }
     const url = new URL(location.href);
@@ -211,6 +213,17 @@
     return null;
   }
 
+  function preloadPicture(nodeId) {
+    const src = pictureUrl(catalog?.[nodeId]);
+    if (!src) return Promise.resolve();
+    if (imageCache.has(src)) return imageCache.get(src);
+    const image = new Image(); image.src = src;
+    const ready = image.decode().catch(error => { imageCache.delete(src); throw error; });
+    imageCache.set(src,ready);
+    if (imageCache.size > 8) imageCache.delete(imageCache.keys().next().value);
+    return ready;
+  }
+
   function renderPicture(nodeId) {
     const doc = frame.contentDocument, entry = catalog?.[nodeId];
     const caption = doc?.getElementById('picture-caption');
@@ -230,17 +243,27 @@
         const block = element('section',null,'caption-section');
         block.append(element('h2',paragraph.title),element('p',paragraph.text)); more.append(block);
       }
-      if (!reduceMotion()) caption.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:240,easing:'ease-out'});
+      window.FairMotion?.reveal(caption,{duration:.4,delay:.06});
     }
     const detail = doc.getElementById('object-picture');
     if (detail) {
       const isDetail = entry.kind === 'object' && Boolean(pictureUrl(entry));
-      detail.hidden = !isDetail;
+      detail.hidden = !isDetail || !detail.complete || !detail.naturalWidth;
       doc.body.classList.toggle('picture-detail',isDetail);
       doc.body.classList.toggle('independent-detail',isDetail && Boolean(entry.exploration?.independentScene));
       if (isDetail) {
         const src = new URL(pictureUrl(entry),location.href).href;
-        if (detail.src !== src) detail.src = src;
+        if (detail.src !== src) {
+          detail.hidden = true; detail.src = src;
+          detail.decode().then(() => {
+            if (currentNode !== nodeId || detail.src !== src) return;
+            detail.hidden = false;
+            window.FairMotion?.animate(detail,{opacity:[0,1]},{duration:.38});
+          }).catch(() => {
+            if (detail.src === src) { detail.hidden = true; detail.removeAttribute('src'); }
+            if (currentNode === nodeId) toast('细节画面暂未载入，可返回活动后重试。');
+          });
+        }
         detail.alt = entry.label + (entry.exploration?.independentScene ? ' · 独立 AI 概念场景' : ' · AI 概念插画局部');
       }
     }
@@ -259,12 +282,11 @@
     if (!caption.classList.contains('expanded')) doc.getElementById('caption-expand').click();
   }
 
-  async function switchPicture(nodeId) {
+  async function switchPicture(nodeId,{direction}={}) {
     const entry = catalog?.[nodeId], src = pictureUrl(entry);
     if (!src) return;
     const request = ++pictureRequest;
-    const preload = new Image(); preload.src = src;
-    try { await preload.decode(); }
+    try { await preloadPicture(nodeId); }
     catch { toast('这张图片暂未载入，请再试一次。'); throw new Error('Picture unavailable'); }
     if (request !== pictureRequest) return;
     const doc = frame.contentDocument, stage = doc.getElementById('main-image-container');
@@ -280,7 +302,7 @@
       stage.append(snapshot);
     }
     try {
-      navigateViewer(nodeId);
+      navigateViewer(nodeId,{direction});
       await new Promise((resolve,reject)=>{
         const started = performance.now(), expected = new URL(src,location.href).href;
         const ready = () => {
@@ -292,7 +314,10 @@
         };
         ready();
       });
-      if (snapshot) await snapshot.animate([{opacity:1},{opacity:0}],{duration:260,easing:'ease-out',fill:'forwards'}).finished;
+      if (snapshot && currentNode === nodeId) {
+        const x = direction === 'previous' ? 36 : direction === 'next' ? -36 : 0;
+        await window.FairMotion.animate(snapshot,{opacity:[1,0],transform:['translateX(0) scale(1)',`translateX(${x}px) scale(${x ? 1 : 1.025})`]},{duration:.4}).finished;
+      }
     } finally { snapshot?.remove(); }
   }
 
@@ -337,7 +362,7 @@
     return entry.caseId ? catalog?.[`fair-${entry.caseId}`] : null;
   }
 
-  function navigateViewer(nodeId,{record=true}={}) {
+  function navigateViewer(nodeId,{record=true,direction}={}) {
     // A pinned object leaves the original viewer on its parent scene. Its
     // navigateToNode handler intentionally ignores the same scene ID, so use
     // the existing object toggle to unpin before returning to that scene.
@@ -345,7 +370,7 @@
       frame.contentDocument?.getElementById('label-' + observedPin)?.click();
     }
     currentNode = nodeId; observedPin = null;
-    updateAddress(nodeId,{record});
+    updateAddress(nodeId,{record,direction});
     send({type: 'navigateToNode', node_id: nodeId});
   }
 
@@ -400,7 +425,31 @@
     const detail = frame.contentDocument.createElement('img');
     detail.id = 'object-picture'; detail.hidden = true;
     frame.contentDocument.getElementById('main-image-container').append(detail);
-    pictures = window.FairPictures.mount({frame,catalog,onNavigate:switchPicture});
+    pictures = window.FairPictures.mount({frame,catalog,onNavigate:switchPicture,onPreload:preloadPicture});
+    const doc = frame.contentDocument, labels = doc.getElementById('labels-container');
+    const prepareLabels = () => {
+      for (const label of labels.querySelectorAll('.label[id]')) {
+        const entry = catalog?.[label.id.slice(6)];
+        if (!entry) continue;
+        label.tabIndex = 0; label.setAttribute('role','button');
+        label.setAttribute('aria-label',`走近${entry.label}`);
+      }
+    };
+    new MutationObserver(prepareLabels).observe(labels,{childList:true});
+    prepareLabels();
+    labels.addEventListener('keydown',event => {
+      if (!['Enter',' '].includes(event.key) || event.repeat || !event.target.matches('.label')) return;
+      event.preventDefault(); event.stopImmediatePropagation(); event.target.click();
+    },true);
+    frame.contentDocument.addEventListener('pointerover',event => {
+      const label = event.target.closest?.('.label[id]');
+      const node = label?.id.slice(6);
+      if (isKnownNode(node) && !navigator.connection?.saveData) void preloadPicture(node).catch(()=>{});
+    },{passive:true});
+    labels.addEventListener('focusin',event => {
+      const node = event.target.id?.slice(6);
+      if (isKnownNode(node) && !navigator.connection?.saveData) void preloadPicture(node).catch(()=>{});
+    });
     const initial = isKnownNode(requestedNode) ? requestedNode : ROOT_ID;
     currentNode = initial;
     updateAddress(initial);
