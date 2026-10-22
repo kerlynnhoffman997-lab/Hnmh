@@ -18,8 +18,17 @@
   <link rel="stylesheet" href="map-folk.css">
   <link rel="stylesheet" href="home-editorial.css">
   <link rel="stylesheet" href="map-feature.css">
+  <link rel="stylesheet" href="visit-polish.css">
+  <link rel="stylesheet" href="visitor-memory.css">
 </head>
-<body>
+<body class="booting">
+  <section id="opening-state" role="status" aria-live="polite" aria-label="打开庙会画卷">
+    <small>赶一场中原庙会</small><h1>画卷正在展开</h1><div class="opening-line" aria-hidden="true"></div>
+    <p>从一方水土，走进人间烟火。</p>
+    <div class="opening-actions" hidden><button type="button">重新打开</button><a href="./">回到河南地图</a></div>
+    <noscript>请启用浏览器的 JavaScript 后查看交互作品。</noscript>
+  </section>
+  <script src="boot-state.js"></script>
   <main id="province-home" aria-label="河南庙会地图"></main>
   <iframe id="viewer" src="viewer.html" title="赶一场中原庙会：从河南地图逐层探索地方文化" allow="fullscreen" allowfullscreen></iframe>
   <a id="review-qr" class="review-qr" href="assets/review-qr.svg" target="_blank" rel="noopener" aria-label="扫码查看交互作品，点击打开二维码大图">
@@ -53,6 +62,8 @@
   <script src="home.js"></script>
   <script src="picture-navigation.js"></script>
   <script src="journey-navigation.js"></script>
+  <script src="visitor-memory.js"></script>
+  <script src="story-continuation.js"></script>
   <script src="host.js"></script>
 </body>
 </html>

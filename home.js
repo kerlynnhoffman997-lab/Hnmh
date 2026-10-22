@@ -96,6 +96,7 @@
             <div class="home-fair-options" role="group" aria-label="选择郑州的庙会"></div></div>
             <div class="home-preview">
               <img class="home-preview-image" alt="" decoding="async" width="1664" height="936">
+              <div class="home-preview-recovery" hidden><p>这幅画暂未展开</p><button class="home-preview-retry" type="button">重试预览</button></div>
               <button class="home-preview-open" type="button" aria-label="走进所选庙会"><span aria-hidden="true">↗</span></button>
               <div class="home-preview-caption"><span class="home-preview-mark" aria-hidden="true">此行<br>将至</span><h2 class="home-fair-title"></h2></div>
             </div>
@@ -143,9 +144,13 @@
       }
       get('.home-selection-clues').hidden = !clues.children.length;
     }
-    async function updatePreview(world, changed, announce) {
+    async function updatePreview(world, changed, announce, retrying = false) {
       const request = ++previewRequest;
       const preview = get('.home-preview-image'), surface = get('.home-preview');
+      const recovery = get('.home-preview-recovery'), retry = get('.home-preview-retry');
+      const restoreRetryFocus = retrying && document.activeElement === retry;
+      recovery.hidden = !retrying; retry.disabled = true;
+      retry.textContent = retrying ? '正在展开…' : '重试预览';
       previewAnimation?.cancel();
       surface.querySelectorAll('.home-preview-previous').forEach(image => image.remove());
       const label = world?.label || '庙会暂未载入';
@@ -164,6 +169,8 @@
         get('.home-selection-description').textContent = description;
         renderClues(world);
         surface.setAttribute('aria-busy','false');
+        recovery.hidden = false; retry.disabled = isEntering; retry.textContent = '重试预览';
+        if (restoreRetryFocus && !isEntering && !container.hidden && document.activeElement === document.body) retry.focus({preventScroll:true});
         status.textContent = '预览暂未载入，仍可点击“走进这场庙会”重试。';
         return;
       }
@@ -174,11 +181,14 @@
         previous.setAttribute('aria-hidden','true'); surface.insertBefore(previous, preview.nextSibling);
       }
       preview.src = src; preview.alt = alt; preview.hidden = false;
+      const retryFocused = restoreRetryFocus && [retry,document.body].includes(document.activeElement);
+      recovery.hidden = true; retry.disabled = false; retry.textContent = '重试预览';
       get('.home-fair-title').textContent = label;
       get('.home-selection-description').textContent = description;
       renderClues(world);
       surface.setAttribute('aria-busy','false');
       previewOpen.disabled = isEntering;
+      if (retryFocused && !isEntering && !container.hidden) previewOpen.focus({preventScroll:true});
       if (announce && changed) {
         window.FairMotion?.reveal(get('.home-fair-title'), {duration:.32});
         window.FairMotion?.reveal(get('.home-selection-description'), {duration:.38});
@@ -275,6 +285,9 @@
       window.FairMotion?.reveal(peek,{duration:.2});
     }
     picker.addEventListener('change', () => selectCity(picker.value));
+    get('.home-preview-retry').addEventListener('click', () => {
+      if (selectedWorld && !isEntering) void updatePreview(selectedWorld,false,true,true);
+    });
     for (const button of [enter,previewOpen,dockEnter]) button.addEventListener('click', () => { if (selectedWorld && !isEntering) onEnter(selectedWorld.id); });
     for (const [selector,direction] of [['.home-city-previous',-1],['.home-city-next',1]]) {
       get(selector).addEventListener('click',() => {
@@ -389,6 +402,10 @@
     }
 
     const api = {
+      selectWorld(worldId) {
+        const world = catalog[worldId];
+        if (world?.kind === 'world' && selectedWorld?.id !== worldId) selectCity(world.city,false,worldId);
+      },
       setEntering(entering) {
         isEntering = Boolean(entering);
         for (const button of [enter,previewOpen,dockEnter]) button.disabled = isEntering || !selectedWorld;
@@ -397,6 +414,7 @@
         for (const button of container.querySelectorAll('[data-home-section]')) button.disabled = isEntering;
         editorial?.setEntering(isEntering);
         featurePanel?.setEntering(isEntering);
+        get('.home-preview-retry').disabled = isEntering || get('.home-preview').getAttribute('aria-busy') === 'true';
         hidePeek(); updateDock();
         enter.setAttribute('aria-busy', String(isEntering));
         enter.querySelector('span').textContent = isEntering ? '正在走进…' : '走进这场庙会';

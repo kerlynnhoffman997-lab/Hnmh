@@ -24,6 +24,9 @@
   let entering = false;
   let pictures = null;
   let journey = null;
+  let continuation = null;
+  let visit = null;
+  let visitRequest = 0;
   let activeFeature = null;
   let pictureRequest = 0;
   let lastPictureNode = null;
@@ -32,11 +35,17 @@
   const viewerReady = new Promise(resolve => { resolveViewerReady = resolve; });
   const reduceMotion = () => matchMedia('(prefers-reduced-motion:reduce)').matches;
 
-  const catalogReady = Promise.all(['catalog.json','stories.json'].map(file =>
-      fetch(file, {credentials:'same-origin'}).then(response => {
-        if (!response.ok) throw new Error(`${file}: ${response.status}`);
-        return response.json();
-      })))
+  async function fetchData(file) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    try {
+      const response = await fetch(file, {credentials:'same-origin',signal:controller.signal});
+      if (!response.ok) throw new Error(`${file}: ${response.status}`);
+      return await response.json();
+    } finally { clearTimeout(timeout); }
+  }
+
+  const catalogReady = Promise.all(['catalog.json','stories.json'].map(fetchData))
       .then(([data, narrative]) => {
         stories = narrative;
         if (!data || typeof data !== 'object' || Array.isArray(data) || !data[ROOT_ID]) {
@@ -44,6 +53,7 @@
         }
         catalog = data;
         home = window.FairHome.mount({container:document.getElementById('province-home'),catalog,onEnter:enterFair});
+        visit = window.FairVisit?.mount({container:document.getElementById('province-home'),catalog,onResume:enterFair});
         window.FairAudio?.mountHome();
         document.querySelector('.home-footer')?.append(document.getElementById('review-qr'));
         home.setVisible(currentNode === ROOT_ID);
@@ -51,6 +61,7 @@
       })
       .catch(error => {
         catalogError = error;
+        window.FairBoot?.fail('图文暂未载入，请检查网络后重新打开。');
         return null;
       });
 
@@ -117,24 +128,16 @@
   }
 
   async function enterFair(nodeId, feature = null) {
-    if (entering || !isKnownNode(nodeId)) return;
+    if (entering || !isKnownNode(nodeId) || !pictureUrl(catalog?.[nodeId])) return false;
+    home?.selectWorld(findFair(catalog[nodeId])?.id);
     activeFeature = feature?.worldId === nodeId ? feature : null;
-    entering = true; home?.setEntering(true);
+    entering = true; home?.setEntering(true); visit?.setEntering(true);
     try {
       await viewerReady;
+      await preloadPicture(nodeId);
       navigateViewer(nodeId);
-      const image = frame.contentDocument.getElementById('main-image');
-      const expected = new URL(`assets/worlds/${catalog[nodeId].caseId}.webp`,location.href).href;
       // Keep the map in place until the destination is visible and decoded.
-      await new Promise((resolve,reject) => {
-        const started = performance.now();
-        function ready() {
-          if (image.src === expected && image.complete && image.naturalWidth && +frame.contentWindow.getComputedStyle(image).opacity > .9) resolve();
-          else if (performance.now()-started > 12000) reject(new Error('scene timeout'));
-          else setTimeout(ready,60);
-        }
-        ready();
-      });
+      if (!await waitForPicture(nodeId)) throw new Error('Entry cancelled');
       const surface = document.getElementById('province-home');
       surface.inert = true;
       if (!reduceMotion()) {
@@ -142,10 +145,12 @@
         await animation.finished; home.setVisible(false); animation.cancel();
       } else home.setVisible(false);
       frame.inert = false; frame.focus({preventScroll:true});
+      return true;
     } catch {
       navigateViewer(ROOT_ID,{record:false});
-      toast('会场暂未载入，请稍后再点“走进这场庙会”。');
-    } finally { entering = false; home?.setEntering(false); }
+      toast('画面暂未载入，请稍后重试。');
+      return false;
+    } finally { entering = false; home?.setEntering(false); visit?.setEntering(false); }
   }
 
   function isKnownNode(value) {
@@ -204,11 +209,14 @@
     else url.searchParams.set('node', nodeId);
     if (url.href !== location.href) history[record?'pushState':'replaceState']({node: nodeId}, '', url);
     const label = catalog?.[nodeId]?.label;
+    const fair = findFair(catalog?.[nodeId] || {});
+    if (fair) home?.selectWorld(fair.id);
     if (nodeId === ROOT_ID || (activeFeature && findFair(catalog?.[nodeId] || {})?.id !== activeFeature.worldId)) activeFeature = null;
     document.title = label && nodeId !== ROOT_ID ? `${label} · 赶一场中原庙会` : '赶一场中原庙会';
     renderPicture(nodeId);
     pictures?.update(nodeId);
     updateJourney(nodeId);
+    rememberVisiblePicture(nodeId);
   }
 
   function pictureUrl(entry) {
@@ -223,10 +231,42 @@
     if (!src) return Promise.resolve();
     if (imageCache.has(src)) return imageCache.get(src);
     const image = new Image(); image.src = src;
-    const ready = image.decode().catch(error => { imageCache.delete(src); throw error; });
+    const ready = new Promise((resolve,reject) => {
+      const timeout = setTimeout(() => reject(new Error('Picture timeout')), 15000);
+      image.decode().then(resolve,reject).finally(() => clearTimeout(timeout));
+    }).catch(error => { imageCache.delete(src); throw error; });
     imageCache.set(src,ready);
     if (imageCache.size > 8) imageCache.delete(imageCache.keys().next().value);
     return ready;
+  }
+
+  function waitForPicture(nodeId, {visible = false, timeout = 12000} = {}) {
+    const entry = catalog?.[nodeId], src = pictureUrl(entry);
+    if (!src) return Promise.resolve(false);
+    const expected = new URL(src,location.href).href, started = performance.now();
+    return new Promise((resolve,reject) => {
+      function check() {
+        // Native deep links briefly select the containing scene before its object.
+        if (currentNode !== nodeId && !(entry.kind === 'object' && currentNode === entry.parentId)) { resolve(false); return; }
+        const doc = frame.contentDocument;
+        const image = doc?.getElementById(entry.kind === 'object' ? 'object-picture' : 'main-image');
+        const shown = !visible || (!frame.inert && !document.body.classList.contains('booting') &&
+          document.getElementById('province-home').hidden && !doc?.querySelector('.picture-transition'));
+        if (currentNode === nodeId && shown && image?.src === expected && image.complete && image.naturalWidth &&
+            !image.hidden && +frame.contentWindow.getComputedStyle(image).opacity > .9) resolve(true);
+        else if (performance.now() - started >= timeout) reject(new Error('Picture timeout'));
+        else setTimeout(check,80);
+      }
+      check();
+    });
+  }
+
+  function rememberVisiblePicture(nodeId) {
+    const request = ++visitRequest;
+    if (!visit || !pictureUrl(catalog?.[nodeId])) return;
+    void waitForPicture(nodeId,{visible:true,timeout:25000}).then(shown => {
+      if (shown && request === visitRequest) visit.record(nodeId);
+    }).catch(() => {});
   }
 
   function renderPicture(nodeId) {
@@ -273,6 +313,7 @@
       }
     }
     renderFeatureRoute(entry, caption);
+    continuation?.update(nodeId);
     doc.defaultView.FairReading?.update({nodeId, kind:entry.kind});
     // The native viewer selects the parent before pinning a deep-linked object.
     // Open its story only after that final selection, so the pin does not reset it.
@@ -488,6 +529,10 @@
   frame.addEventListener('load', async () => {
     clearTimeout(minimizedTimer);
     await catalogReady;
+    if (catalogError || !catalog) return;
+    try {
+    const stage = frame.contentDocument?.getElementById('main-image-container');
+    if (!stage || !frame.contentWindow.FairReading) throw new Error('Viewer unavailable');
     window.FairAudio?.attachFrame(frame);
     const detail = frame.contentDocument.createElement('img');
     detail.id = 'object-picture'; detail.hidden = true;
@@ -497,6 +542,7 @@
       if (nodeId === ROOT_ID) navigateViewer(ROOT_ID);
       else return switchPicture(nodeId,{direction:'previous'});
     }});
+    continuation = window.FairContinuation?.mount({frame,catalog,onNavigate:switchPicture,onMap() { navigateViewer(ROOT_ID); }});
     const doc = frame.contentDocument, labels = doc.getElementById('labels-container');
     const prepareLabels = () => {
       for (const label of labels.querySelectorAll('.label[id]')) {
@@ -527,6 +573,11 @@
     initializeViewer(initial);
     observePinnedObjects();
     resolveViewerReady();
+    if (initial !== ROOT_ID && !await waitForPicture(initial)) throw new Error('Initial picture unavailable');
+    window.FairBoot?.ready();
+    } catch {
+      window.FairBoot?.fail('画面暂未载入，请重新打开，或先回到河南地图。');
+    }
   });
 
   window.addEventListener('message', event => {

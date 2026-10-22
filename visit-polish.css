@@ -1,0 +1,22 @@
+/* Show an opening state before data arrives, including a failed request. */
+body.booting #province-home, body.booting #viewer, body.booting #review-qr { visibility:hidden; }
+#opening-state { position:fixed; inset:0; z-index:40; display:grid; place-content:center; justify-items:center; text-align:center; padding:24px; background:#f5efdf; color:#2d4737; }
+#opening-state > small { font:12px/1.6 'Microsoft YaHei',sans-serif; letter-spacing:.18em; color:#92704b; }
+#opening-state h1 { margin:18px 0 8px; font:500 clamp(28px,5vw,42px)/1.5 'Noto Serif SC','Songti SC',serif; }
+#opening-state p { max-width:32em; margin:0; color:#64705b; font-size:14px; }
+.opening-line { width:120px; height:2px; margin:25px 0; background:#b08c5566; }
+.opening-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin-top:24px; }
+.opening-actions button,.opening-actions a { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:8px 18px; border:1px solid #879177; border-radius:5px; color:#2d4737; background:#fff9ed; font:14px/1.5 'Microsoft YaHei',sans-serif; text-decoration:none; }
+.opening-actions button:focus-visible,.opening-actions a:focus-visible { outline:2px solid #a44e36; outline-offset:3px; }
+/* Failed previews offer a visible retry next to the image. */
+.home-preview-recovery { position:absolute; inset:0 0 30%; z-index:3; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; padding:12px; background:#ece6d7; color:#40543d; }
+.home-preview-recovery p { margin:0; font:13px/1.7 'Microsoft YaHei',sans-serif; }
+.home-preview-recovery button,.home-feature-retry { min-height:44px; border:1px solid #a48a5e88; border-radius:4px; padding:6px 13px; color:#96452f; background:#fff9ec; font:12px/1.5 'Microsoft YaHei',sans-serif; }
+.home-preview-recovery button:focus-visible,.home-feature-retry:focus-visible { outline:2px solid #a44e36; outline-offset:2px; }
+.home-preview-recovery button:disabled,.home-feature-retry:disabled { opacity:.6; cursor:wait; }
+.home-feature-image-note { gap:4px; align-content:center; text-align:center; padding:5px; }
+.home-feature-image-note > span { font-size:11px; }
+.home-feature-retry { padding:3px 7px; font-size:11px; }
+.home-feature-copy .home-feature-retry { display:block; padding:5px 10px; margin:6px 0; border:1px solid #a48a5e88; background:#fff9ec; }
+.home-feature-copy .home-feature-retry[hidden] { display:none; }
+.home-preview-recovery[hidden],.home-feature-image-note[hidden] { display:none; }
