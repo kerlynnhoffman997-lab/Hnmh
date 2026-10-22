@@ -175,7 +175,7 @@
     doc.addEventListener('keydown',unlock,true);
     doc.addEventListener('click',event => {
       if (!event.isTrusted) return;
-      const target = event.target?.closest?.('.home-region,.home-map-label,.home-fair-options button,.home-city-paging button,.home-surprise,#caption-expand,#picture-caption-toggle,#picture-fit');
+      const target = event.target?.closest?.('.home-region,.home-map-label,.home-fair-options button,.home-city-paging button,.home-surprise,.home-theme-button,.home-editorial-stop,.home-editorial-locate,.home-editorial-back,[data-home-section],#caption-expand,#picture-caption-toggle,#picture-fit');
       if (target && !target.disabled) effect(target.id ? 'story' : 'select');
     },true);
     doc.addEventListener('change',event => { if (event.isTrusted && event.target.matches('.home-city-picker select')) effect('select'); },true);

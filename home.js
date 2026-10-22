@@ -67,13 +67,14 @@
       <div class="home-shell">
         <div class="home-masthead">
           <p class="home-eyebrow"><span class="home-seal" aria-hidden="true">豫</span>河南庙会文化图谱</p>
+          <nav class="home-page-nav" aria-label="首页章节"><button type="button" data-home-section="atlas" aria-current="location">地图寻城</button><button type="button" data-home-section="editorial">画里逛会</button></nav>
           <p class="home-count"><strong>18</strong> 个地区<span aria-hidden="true">／</span><strong>19</strong> 场庙会</p>
         </div>
         <div class="home-layout">
           <header class="home-intro">
             <p class="home-verse" aria-hidden="true">人间烟火<span>岁岁相逢</span></p>
             <h1 class="home-title" tabindex="-1"><em>赶一场</em><span>中原庙会</span></h1>
-            <p class="home-intro-copy">循着锣鼓与烟火，<br class="home-desktop-break">走进十八方水土的庙会故事。</p>
+            <p class="home-intro-copy">循着锣鼓与烟火，走进十八方水土。<br>从一座城、一场庙会，慢慢看到手艺与人的故事。</p>
             <ol class="home-reading" aria-label="三级探索导读">
               <li><span aria-hidden="true">壹</span><div><strong>选一座城</strong><small>在地图上找到地方风物</small></div></li>
               <li><span aria-hidden="true">贰</span><div><strong>走进会场</strong><small>沿街巷、戏台与摊位探索</small></div></li>
@@ -102,9 +103,11 @@
               <p class="home-selection-description"></p>
               <button class="home-enter" type="button"><span>走进这场庙会</span><span aria-hidden="true">↗</span></button>
             </div>
+            <div class="home-selection-clues"><small>这一站，先看什么</small><ul aria-label="这场庙会的画中线索"></ul></div>
             <p class="home-selection-status home-sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
           </section>
         </div>
+        <button class="home-chapter-link" type="button" data-home-section="editorial">往下逛，看见更多烟火 <span aria-hidden="true">↓</span></button>
         <footer class="home-footer"><div class="home-footer-note"><span>一城一会，一步一景。</span><small>从全景到细节，读人与物的故事。<br>国漫场景叙事 · AI 概念插画</small></div></footer>
       </div>
       <div class="home-mobile-dock" hidden><div><small>此行 · <span class="home-dock-city"></span></small><strong class="home-dock-title"></strong></div><button class="home-dock-enter" type="button">走进庙会 <span aria-hidden="true">↗</span></button></div>`;
@@ -122,13 +125,21 @@
     let isEntering = false;
     let previewRequest = 0;
     let previewAnimation = null;
-    let enterVisible = false;
+    let enterVisible = false, editorialVisible = false;
     let peekCity = null;
     const compact = matchMedia('(max-width:700px) and (orientation:portrait)');
-    function updateDock() { dock.hidden = !compact.matches || enterVisible || !selectedWorld || isEntering; }
+    function updateDock() { dock.hidden = !compact.matches || enterVisible || editorialVisible || !selectedWorld || isEntering; }
     compact.addEventListener('change', updateDock);
     new IntersectionObserver(entries => { enterVisible = entries[0].intersectionRatio >= .9; updateDock(); },{root:container,threshold:[0,.9,1],rootMargin:'0px 0px -86px 0px'}).observe(enter);
 
+    function renderClues(world) {
+      const clues = get('.home-selection-clues ul'); clues.replaceChildren();
+      for (const id of (world?.childrenIds || []).slice(0, 3)) {
+        const scene = catalog[id]; if (!scene) continue;
+        const item = document.createElement('li'); item.textContent = scene.label; clues.append(item);
+      }
+      get('.home-selection-clues').hidden = !clues.children.length;
+    }
     async function updatePreview(world, changed, announce) {
       const request = ++previewRequest;
       const preview = get('.home-preview-image'), surface = get('.home-preview');
@@ -148,6 +159,7 @@
         preview.hidden = true;
         get('.home-fair-title').textContent = label;
         get('.home-selection-description').textContent = description;
+        renderClues(world);
         surface.setAttribute('aria-busy','false');
         status.textContent = '预览暂未载入，仍可点击“走进这场庙会”重试。';
         return;
@@ -161,6 +173,7 @@
       preview.src = src; preview.alt = alt; preview.hidden = false;
       get('.home-fair-title').textContent = label;
       get('.home-selection-description').textContent = description;
+      renderClues(world);
       surface.setAttribute('aria-busy','false');
       previewOpen.disabled = isEntering;
       if (announce && changed) {
@@ -323,12 +336,53 @@
         get('.home-map-loading').textContent = '地图暂未载入，请用下方地区选择继续探索。';
       });
 
+    function scrollHomeSection(section) {
+      const target = section === 'editorial' ? get('.home-editorial') : get('.home-map-section');
+      if (!target) return;
+      target.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'instant' : 'smooth', block: 'start'});
+      const focus = section === 'editorial' ? get('#home-editorial-title') : [...mapCanvas.querySelectorAll('.home-region')].find(region => region.dataset.city === selectedCity) || picker;
+      focus?.focus({preventScroll:true});
+    }
+    const editorial = window.FairHomeEditorial?.mount({container, catalog,
+      onLocate(worldId) { const world = catalog[worldId]; if (world && !isEntering) { selectCity(world.city, true, worldId); scrollHomeSection('atlas'); } },
+      onBack() { scrollHomeSection('atlas'); }
+    });
+    for (const button of container.querySelectorAll('[data-home-section]')) button.addEventListener('click', () => { if (!isEntering) scrollHomeSection(button.dataset.homeSection); });
+    if (editorial) {
+      new IntersectionObserver(entries => {
+        editorialVisible = entries[0].isIntersecting; updateDock();
+      }, {root: container, threshold: 0}).observe(editorial.element);
+      const chapterButtons = [...container.querySelectorAll('.home-page-nav button')];
+      let activeChapter = null, chapterFrame = 0;
+      function updateChapter() {
+        chapterFrame = 0;
+        // A glimpse of the next chapter should not change the current map chapter.
+        const boundary = container.getBoundingClientRect().top + Math.min(300, container.clientHeight / 2);
+        const chapter = editorial.element.getBoundingClientRect().top <= boundary ? 'editorial' : 'atlas';
+        if (chapter === activeChapter) return;
+        activeChapter = chapter;
+        for (const button of chapterButtons) {
+          if (button.dataset.homeSection === chapter) button.setAttribute('aria-current', 'location');
+          else button.removeAttribute('aria-current');
+        }
+      }
+      function scheduleChapter() { if (!chapterFrame) chapterFrame = requestAnimationFrame(updateChapter); }
+      container.addEventListener('scroll', scheduleChapter, {passive:true});
+      new ResizeObserver(scheduleChapter).observe(container);
+      updateChapter();
+    } else {
+      get('.home-chapter-link').hidden = true;
+      get('.home-page-nav [data-home-section="editorial"]').hidden = true;
+    }
+
     const api = {
       setEntering(entering) {
         isEntering = Boolean(entering);
         for (const button of [enter,previewOpen,dockEnter]) button.disabled = isEntering || !selectedWorld;
         previewOpen.disabled = isEntering || !selectedWorld || get('.home-preview').getAttribute('aria-busy') === 'true' || get('.home-preview-image').hidden;
         for (const button of cityButtons) button.disabled = isEntering;
+        for (const button of container.querySelectorAll('[data-home-section]')) button.disabled = isEntering;
+        editorial?.setEntering(isEntering);
         hidePeek(); updateDock();
         enter.setAttribute('aria-busy', String(isEntering));
         enter.querySelector('span').textContent = isEntering ? '正在走进…' : '走进这场庙会';
