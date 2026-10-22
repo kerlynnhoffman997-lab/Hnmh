@@ -26,6 +26,7 @@
       section.querySelector('p').textContent = next.summary;
       section.querySelector('.home-feature-route').textContent = '会场 → ' + catalog[next.sceneId].label + (next.targetId !== next.sceneId ? ' → 器物' : '');
       button.setAttribute('aria-label', `走进${world.label}，寻找${next.title}`);
+      button.innerHTML = next.symbol === 'clay-bird' ? '循声找泥咕咕 <span aria-hidden="true">↗</span>' : '从会场看起 <span aria-hidden="true">↗</span>';
       const image = new Image(); image.src = next.image;
       image.decode().then(() => {
         if (ticket !== request) return;

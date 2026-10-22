@@ -12,6 +12,7 @@
   let context, master, musicBus, effectsBus, musicBuffer, musicSource, loading;
   let error = '', lastNode, lastEntry, lastEffect = -Infinity, effectCount = 0, suspendTimer, previousFocus;
   let musicStopTimer, musicStartedAt = 0, musicOffset = 0, reading = false, musicFormat = '', lastCue = '';
+  let clayVoice = null, clayWhistleCount = 0;
   const buttons = new Set(), documents = new WeakSet();
   const dialog = document.createElement('dialog');
   dialog.id = 'fair-sound-dialog';
@@ -57,7 +58,7 @@
     else { const held = bus.gain.value; bus.gain.cancelScheduledValues(at); bus.gain.setValueAtTime(held,at); }
     bus.gain.linearRampToValueAtTime(value,at+seconds);
   }
-  function musicLevel() { return prefs.music ? prefs.musicVolume*(reading ? .48 : 1) : 0; }
+  function musicLevel() { return prefs.music ? prefs.musicVolume*(reading ? .48 : 1)*(clayVoice?.started && !clayVoice.stopped ? .56 : 1) : 0; }
   function ensureContext() {
     if (context) return true;
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -67,7 +68,7 @@
       master = context.createGain(); master.gain.value = 0; master.connect(context.destination);
       musicBus = context.createGain(); musicBus.gain.value = prefs.musicVolume; musicBus.connect(master);
       effectsBus = context.createGain(); effectsBus.gain.value = prefs.effectsVolume; effectsBus.connect(master);
-      context.addEventListener('statechange',render);
+      context.addEventListener('statechange',() => { if (context.state !== 'running') stopClayWhistle(); render(); });
       return true;
     } catch { error = '声音暂未开启，请再试一次。'; render(); return false; }
   }
@@ -130,6 +131,7 @@
     prefs.enabled = value; error = ''; save();
     if (value) void resume();
     else {
+      stopClayWhistle();
       ramp(master,0,.12); clearTimeout(suspendTimer);
       suspendTimer = setTimeout(() => { if (!prefs.enabled) context?.suspend().catch(()=>{}); },150);
     }
@@ -163,6 +165,87 @@
     else if (kind === 'root' || kind === 'back') { pluck(440,at,.085); pluck(293.66,at+.09,.065); }
     else pluck(kind === 'story' ? 440 : 493.88,at,.075,.3);
   }
+  function clayWhistleAvailable() { return prefs.enabled && prefs.effects && prefs.effectsVolume > 0 && !document.hidden; }
+  function stopClayWhistle() { clayVoice?.stop(); }
+  // This is an artistic two-note synthesis, not a recording of a traditional whistle.
+  // Return a synchronous cancellation function so pointerup can cancel a pending resume.
+  function clayWhistle({pan = 0} = {}) {
+    stopClayWhistle();
+    if (!clayWhistleAvailable()) return () => {};
+    const position = Number.isFinite(pan) ? Math.max(-1,Math.min(1,pan)) : 0;
+    const voice = {started:false,stopped:false,pan:position,voices:new Set(),deadline:performance.now()+4000};
+    voice.stop = () => {
+      if (voice.stopped) return;
+      voice.stopped = true;
+      clearTimeout(voice.repeatTimer); clearTimeout(voice.limitTimer);
+      if (voice.output && context) {
+        ramp(voice.output,0,.045);
+        for (const tone of voice.voices) {
+          try { tone.oscillator.stop(context.currentTime+.055); } catch { /* A completed tone is already silent. */ }
+        }
+        // Disconnect on wall time too: a suspended context must not replay a held note.
+        setTimeout(() => {
+          for (const tone of [...voice.voices]) tone.cleanup();
+          voice.output.disconnect(); voice.panner?.disconnect();
+        },75);
+      }
+      if (clayVoice === voice) { clayVoice = null; ramp(musicBus,musicLevel(),.35); }
+    };
+    clayVoice = voice;
+    voice.limitTimer = setTimeout(voice.stop,4000);
+
+    function tone(frequency,time,duration,volume) {
+      const oscillator = context.createOscillator(), gain = context.createGain(), filter = context.createBiquadFilter();
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequency*.97,time);
+      oscillator.frequency.linearRampToValueAtTime(frequency,time+.045);
+      oscillator.frequency.linearRampToValueAtTime(frequency*.985,time+duration);
+      filter.type = 'lowpass'; filter.frequency.value = 1500; filter.Q.value = .4;
+      gain.gain.setValueAtTime(0,time);
+      gain.gain.linearRampToValueAtTime(volume,time+.025);
+      gain.gain.linearRampToValueAtTime(volume*.7,time+duration*.58);
+      gain.gain.linearRampToValueAtTime(0,time+duration);
+      oscillator.connect(filter).connect(gain).connect(voice.output);
+      const part = {oscillator,cleanup() {
+        if (!voice.voices.delete(part)) return;
+        oscillator.disconnect(); filter.disconnect(); gain.disconnect();
+      }};
+      voice.voices.add(part);
+      oscillator.onended = part.cleanup;
+      oscillator.start(time); oscillator.stop(time+duration+.01);
+    }
+
+    function breathe() {
+      if (voice.stopped || clayVoice !== voice || !active() || !clayWhistleAvailable() || performance.now() >= voice.deadline) {
+        voice.stop(); return;
+      }
+      try {
+        const at = context.currentTime+.008;
+        tone(740,at,.19,.115);
+        tone(622,at+.255,.23,.095);
+        voice.repeatTimer = setTimeout(breathe,760);
+      } catch { voice.stop(); }
+    }
+
+    function begin() {
+      if (voice.stopped || clayVoice !== voice || !active() || !clayWhistleAvailable() || performance.now() >= voice.deadline) {
+        voice.stop(); return;
+      }
+      try {
+        voice.output = context.createGain(); voice.output.gain.value = 1;
+        if (typeof context.createStereoPanner === 'function') {
+          voice.panner = context.createStereoPanner(); voice.panner.pan.value = position;
+          voice.output.connect(voice.panner).connect(effectsBus);
+        } else voice.output.connect(effectsBus);
+        voice.started = true; clayWhistleCount++; lastCue = 'clay-whistle'; effectCount++;
+        ramp(musicBus,musicLevel(),.12);
+        breathe();
+      } catch { voice.stop(); }
+    }
+    if (active()) begin();
+    else void resume().then(begin,voice.stop);
+    return voice.stop;
+  }
   function wireDocument(doc) {
     if (documents.has(doc)) return;
     documents.add(doc);
@@ -180,7 +263,8 @@
     },true);
     doc.addEventListener('change',event => { if (event.isTrusted && event.target.matches('.home-city-picker select')) effect('select'); },true);
   }
-  function openSettings(button) {
+  function openSettings(button = document.activeElement) {
+    stopClayWhistle();
     previousFocus = button;
     render();
     if (!dialog.open) dialog.showModal();
@@ -198,11 +282,12 @@
       prefs[type] = event.target.checked; error = '';
       if (prefs[type] && !prefs.enabled) setEnabled(true);
       if (type === 'music') { if (prefs.music) void startMusic(); else stopMusic(); }
-      else { ramp(effectsBus,prefs.effects ? prefs.effectsVolume : 0); if (prefs.effects) effect('select'); }
+      else { if (!prefs.effects) stopClayWhistle(); ramp(effectsBus,prefs.effects ? prefs.effectsVolume : 0); if (prefs.effects) effect('select'); }
       save(); render();
     });
     control('sound-'+type+'-volume').addEventListener('input',event => {
       prefs[type+'Volume'] = Number(event.target.value)/100;
+      if (type === 'effects' && !prefs.effectsVolume) stopClayWhistle();
       ramp(type === 'music' ? musicBus : effectsBus,type === 'music' ? musicLevel() : prefs.effects ? prefs.effectsVolume : 0);
       if (type === 'music' && prefs.music) { if (prefs.musicVolume) void startMusic(); else stopMusic(); }
       save(); render();
@@ -217,11 +302,14 @@
   });
   dialog.addEventListener('close',() => { if (previousFocus?.isConnected) previousFocus.focus({preventScroll:true}); });
   document.addEventListener('visibilitychange',() => {
-    if (document.hidden) { clearTimeout(suspendTimer); context?.suspend().catch(()=>{}); }
+    if (document.hidden) { stopClayWhistle(); clearTimeout(suspendTimer); context?.suspend().catch(()=>{}); }
     else if (prefs.enabled && context) void resume();
   });
-  window.addEventListener('pagehide',() => { clearTimeout(suspendTimer); context?.suspend().catch(()=>{}); });
+  window.addEventListener('pagehide',() => { stopClayWhistle(); clearTimeout(suspendTimer); context?.suspend().catch(()=>{}); });
   window.addEventListener('pageshow',event => { if (event.persisted && prefs.enabled && context) void resume(); });
+  window.addEventListener('blur',stopClayWhistle);
+  window.addEventListener('orientationchange',stopClayWhistle);
+  window.screen?.orientation?.addEventListener('change',stopClayWhistle);
   wireDocument(document);
   window.FairAudio = {
     mountHome() {
@@ -251,6 +339,7 @@
     },
     navigate(entry,options={}) {
       if (!entry || entry.id === lastNode) return;
+      stopClayWhistle();
       const previous = lastEntry; lastNode = entry.id; lastEntry = entry;
       if (reading) { reading = false; ramp(musicBus,musicLevel(),.85); render(); }
       if (previous) {
@@ -259,8 +348,10 @@
         effect(backward ? 'back' : options.direction === 'next' ? 'next' : entry.kind);
       }
     },
+    clayWhistle,
+    openSettings,
     // Read-only diagnostic state for browser QA; no audio is started by inspection.
-    readState() { return {...prefs,context:context?.state || 'uninitialized',playing:Boolean(musicSource && active() && prefs.music && prefs.musicVolume),loading:Boolean(loading),effectsPlayed:effectCount,node:lastNode,musicDuration:musicBuffer?.duration || 0,musicFormat,reading,musicGain:musicBus?.gain.value || 0,musicPosition:musicBuffer ? (musicOffset+(musicSource ? context.currentTime-musicStartedAt : 0)) % musicBuffer.duration : 0,lastCue,error}; }
+    readState() { return {...prefs,context:context?.state || 'uninitialized',playing:Boolean(musicSource && active() && prefs.music && prefs.musicVolume),loading:Boolean(loading),effectsPlayed:effectCount,node:lastNode,musicDuration:musicBuffer?.duration || 0,musicFormat,reading,musicGain:musicBus?.gain.value || 0,musicPosition:musicBuffer ? (musicOffset+(musicSource ? context.currentTime-musicStartedAt : 0)) % musicBuffer.duration : 0,lastCue,clayWhistleAvailable:clayWhistleAvailable(),clayWhistleActive:Boolean(clayVoice?.started && !clayVoice.stopped),clayWhistlePending:Boolean(clayVoice && !clayVoice.started && !clayVoice.stopped),clayWhistleVoices:clayVoice?.voices.size || 0,clayWhistleCount,clayWhistlePan:clayVoice?.pan || 0,error}; }
   };
   render();
 })();

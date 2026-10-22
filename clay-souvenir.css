@@ -1,0 +1,55 @@
+#clay-souvenir {
+  box-sizing: border-box; width: min(720px, calc(100vw - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))); max-height: calc(100dvh - 40px);
+  inset: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  padding: 0; border: 1px solid #c4b18b; border-radius: 14px;
+  background: #f7f1e5; color: #2d4737; color-scheme: light;
+  font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  box-shadow: 0 20px 70px #102b284d; overflow: hidden;
+}
+#clay-souvenir[open] { display: flex; flex-direction: column; }
+#clay-souvenir::backdrop { background: #10241f9c; backdrop-filter: blur(5px); }
+#clay-souvenir [hidden] { display: none !important; }
+#clay-souvenir .clay-souvenir-header { display: flex; flex: none; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 23px 24px 15px; }
+.clay-souvenir-header > div { min-width: 0; }
+#clay-souvenir .clay-souvenir-header small { color: #967149; font-size: 11px; line-height: 1.6; letter-spacing: .12em; }
+#clay-souvenir .clay-souvenir-header h2 { margin: 7px 0 6px; color: #294333; font: 500 27px/1.4 'Noto Serif SC', 'Songti SC', SimSun, serif; }
+#clay-souvenir #clay-souvenir-intro { margin: 0; font-size: 13px; line-height: 1.8; color: #65705a; }
+#clay-souvenir button { box-sizing: border-box; min-height: 44px; font-family: inherit; font-size: 13px; cursor: pointer; touch-action: manipulation; }
+#clay-souvenir .clay-souvenir-close { display: grid; place-items: center; flex: none; width: 44px; padding: 0; border: 1px solid #b6a37a70; border-radius: 8px; color: #53634c; background: #fff9ed; font: 25px/1 Arial, sans-serif; }
+#clay-souvenir .clay-souvenir-body { min-height: 0; overflow: auto; overscroll-behavior: contain; touch-action: pan-y; padding: 0 24px 15px; scrollbar-width: thin; scrollbar-color: #a8a28a66 transparent; }
+#clay-souvenir .clay-souvenir-record { margin: 0 0 12px; color: #7b7257; font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
+#clay-souvenir .clay-souvenir-placeholder { display: grid; place-items: center; min-height: 230px; padding: 24px; border: 1px solid #b7a67c3d; background: #eee7d7; color: #68725b; text-align: center; font-size: 14px; line-height: 1.9; }
+#clay-souvenir .clay-souvenir-preview { display: block; width: 100%; height: auto; background: #f6f0e3; box-shadow: 0 3px 16px #3e442116; user-select: auto; -webkit-touch-callout: default; }
+#clay-souvenir .clay-souvenir-preview:focus-visible { outline: 2px solid #a3432f; outline-offset: -3px; }
+#clay-souvenir .clay-souvenir-save-note { margin: 12px 0 0; color: #736b53; font-size: 12px; line-height: 1.8; }
+#clay-souvenir .clay-souvenir-footer { flex: none; padding: 14px 24px 20px; border-top: 1px solid #b4a07840; background: #f4ecdc; }
+#clay-souvenir .clay-souvenir-status { margin: 0 0 11px; color: #65705a; font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
+#clay-souvenir .clay-souvenir-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 9px 12px; }
+#clay-souvenir .clay-souvenir-actions button { padding: 9px 16px; border: 1px solid #aa956c80; border-radius: 7px; line-height: 1.6; }
+#clay-souvenir .clay-souvenir-save { background: #314d3e; border-color: #314d3e !important; color: #fff3da; }
+#clay-souvenir .clay-souvenir-retry { background: #fff9ec; color: #9a4b32; }
+#clay-souvenir .clay-souvenir-return { margin-left: auto; background: transparent; color: #665e48; }
+#clay-souvenir button:disabled { opacity: .5; cursor: wait; }
+#clay-souvenir button:focus-visible { outline: 2px solid #a3432f; outline-offset: 3px; }
+#clay-souvenir button:not(:disabled):hover { filter: brightness(.96); }
+.clay-souvenir-fallback-backdrop { position: fixed; z-index: 19999; inset: 0; background: #10241f9c; }
+.clay-souvenir-fallback-backdrop[hidden] { display: none !important; }
+#clay-souvenir.is-fallback { position: fixed; z-index: 20000; top: 50%; left: 50%; right: auto; bottom: auto; margin: 0; transform: translate(-50%, -50%); }
+@media (max-width: 700px) {
+  #clay-souvenir { width: calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)); max-height: calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); border-radius: 12px; }
+  #clay-souvenir .clay-souvenir-header { padding: 18px 16px 13px; gap: 10px; }
+  #clay-souvenir .clay-souvenir-header h2 { font-size: 23px; }
+  #clay-souvenir #clay-souvenir-intro { font-size: 12px; }
+  #clay-souvenir .clay-souvenir-body { padding: 0 16px 12px; }
+  #clay-souvenir .clay-souvenir-footer { padding: 12px 16px 16px; }
+  #clay-souvenir .clay-souvenir-actions { column-gap: 8px; }
+  #clay-souvenir .clay-souvenir-actions button { padding-inline: 12px; font-size: 12px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  #clay-souvenir { max-height: calc(100dvh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
+  #clay-souvenir .clay-souvenir-header { padding-block: 11px; }
+  #clay-souvenir .clay-souvenir-header small, #clay-souvenir #clay-souvenir-intro { display: none; }
+  #clay-souvenir .clay-souvenir-header h2 { margin-block: 5px; font-size: 23px; }
+  #clay-souvenir .clay-souvenir-footer { padding-block: 9px; }
+  #clay-souvenir .clay-souvenir-status { margin-bottom: 6px; }
+}
