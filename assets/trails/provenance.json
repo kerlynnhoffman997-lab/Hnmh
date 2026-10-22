@@ -1,0 +1,705 @@
+[
+  {
+    "id": "zz-zy",
+    "city": "郑州",
+    "fair": "中岳庙会",
+    "image": "assets/trails/zz-zy.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2025刊载，拍摄年份未披露",
+    "sources": [
+      {
+        "title": "探访郑州登封中岳千年古庙会",
+        "url": "https://www.sohu.com/a/877846965_121058892",
+        "year": "2025刊载",
+        "type": "考察图文",
+        "supports": "传统会期、摊位及表演照片，实拍年未明"
+      }
+    ],
+    "factBoundary": "考察图文中的河洛大鼓表演围绕红布桌展开，小鼓把视觉注意力集中到艺人手边。它是理解曲艺现场的具体入口，但本包没有核听录音，不能由画中的击鼓姿势还原固定节拍或所唱书目。",
+    "artisticCompletion": "人物外貌与人数、镜头视角、局部陈设及光照为艺术补全；不作为精确复原或当届实况。",
+    "referenceImage": "assets/details-generated/object-zz-zy-03-story-drum.webp",
+    "prompt": "Use case: illustration-story.\nAsset type: an independent detail painting for the interactive Henan temple-fair website, AI concept illustration.\nPrimary request: Create a new horizontal 16:9 scene about the small red storytelling drum at the Zhongyue Temple fair in Dengfeng, Henan. Match the refined 2D Chinese animation painting style of both references, but compose an entirely new close view, not a crop or enlargement.\nInput images: image 1 is the parent fair-performance reference for colors and context; image 2 is the drum reference for material and costume continuity.\nScene: at a red-cloth-covered performance table in a leafy temple courtyard, a middle-aged woman wearing the referenced red-and-gold festive jacket holds two plain wooden drum sticks over a low round red drum supported by a small metal stand. Show her from chest to hands, face partly visible upper left, an unobtrusive seated audience in ordinary modern clothes and soft temple eaves behind.\nComposition: eye-level three-quarter close view; drum occupies middle of lower half and is fully visible. Three visually distinct details need clear separation: cream drumhead near center; the wooden sticks and her natural hands upper-left; red fabric folds draped from table at lower-right. Warm dappled daylight, realistic human proportions, clean fine outlines, soft painterly shading, natural muted greens and warm reds. Decorative cloth motifs can be simple nonverbal flowers.\nConstraints: physically coherent single pair of hands, two straight separate sticks, no duplicated fingers, continuous circular drum and coherent stand. Drum is a storytelling performance prop, do not invent ritual. No explanatory arrows, no UI, no split panels, no lettering, no watermark, no borders. Not photorealistic, not 3D, not chibi. Preserve contemporary visitors and historical setting. Full standalone landscape illustration.",
+    "sha256": "21afd939cbda6f7d98efd9f4fce9cf33048966c1ea66b3058bef6e1d1d0170c1",
+    "revisionPrompt": null
+  },
+  {
+    "id": "zz-hx",
+    "city": "郑州",
+    "fair": "航线里2026春节庙会",
+    "image": "assets/trails/zz-hx.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2026年2月现场报道文字依据",
+    "sources": [
+      {
+        "title": "航线里2026春节庙会成新春爆款",
+        "url": "https://www.wenweipo.com/s/202602/18/AP699525e3e4b04d7d56d403dd.html",
+        "year": "2026-02-18",
+        "type": "香港文汇报现场报道",
+        "supports": "正式会期、日内时段、航空场景和4张实景"
+      }
+    ],
+    "factBoundary": "文汇报明确介绍的是C919模型，报道尺寸为机长18米、高5米。这个对象代表航空港庙会的主题，不提供真实航班或乘机服务；插画以地面展陈表现，机翼、支座和涂装都是概念化整理。",
+    "artisticCompletion": "飞机涂装、展台、围栏、模型简化结构与人物为艺术补全；18米、5米是报道数据，画面不用于比例测量。已修订为地面展示模型，删除登机行为。",
+    "referenceImage": "assets/details-generated/object-zz-hx-02-aircraft-model.webp",
+    "prompt": "Use case: illustration-story.\nAsset type: independent observation painting for the Henan temple-fair interactive website.\nPrimary request: Create a new horizontal 16:9 close scene of an outdoor C919 airliner DISPLAY MODEL at Zhengzhou Hangxianli temple fair. It is an inert exhibition model on a white plinth, not an operating aircraft. Use both references only for scene/style/object continuity, creating a newly drawn composition.\nComposition: three-quarter view from the front-left of the white-and-blue model. The model nose and dark cockpit windows sit in the upper-right, a clearly connected wing sweeps toward the left with one inert fan housing below, and the lowered landing wheels rest firmly on the display plinth in the lower center. Three observation features are separated: nose/cockpit, wing, ground-supported model/plinth. View close enough to read model materials yet include the near wing and nose without cropping. Blue rope barriers distinguish visitors from display.\nScene: winter sunshine, a modern low-rise civic/commercial plaza in soft focus, red festival banners bearing only a small simple airplane pictogram, a parent and child in everyday winter coats watching behind the barrier at lower-left. Natural adult and child proportions. Details in plinth/rail/window are decorative, not engineering cutaway. No boarding stairs, no entry into model, no pilot, no airborne plane, no runway.\nStyle: refined 2D Chinese animation illustration matching references, clean fine outlines, gentle painterly shading, natural warm daylight, ivory and blue model, red festive accents, no photorealism or 3D.\nText: none at all, including no C919 wordmark or fake letters, no signboards with text. No UI, no infographic arrows, no split panels, no watermark. The model's identity is explained outside this image.",
+    "sha256": "eb4fa96eb4daedd1c50364ffc04a148b513c081074088d7f7378cc257267a169",
+    "revisionPrompt": "Use case: precise-object-edit. Edit this AI illustration only to remove all three blue-and-white information plaques from the front of the white exhibition plinth and remove every tiny printed letter/wordmark from the model fuselage and blue background tents. Replace plaque areas with plain continuous white plinth faces. Keep the aircraft clearly a static display model on blocks; preserve all model geometry, nose, wings, landing wheels, crowd, colors, composition, natural anatomy and refined 2D Chinese animation style. No new text, no logos, no labels or UI anywhere. Horizontal 16:9."
+  },
+  {
+    "id": "kf-ws",
+    "city": "开封",
+    "fair": "万岁山春节大庙会",
+    "image": "assets/trails/kf-ws.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2024春节（报道日期2024-02-13）",
+    "sources": [
+      {
+        "title": "河南开封：万岁山武侠城大庙会·灯会精彩上演",
+        "url": "https://hn.cri.cn/2024-02-13/a1fff9a3-e6c6-fe34-7edb-55eb1ff21adf.html",
+        "year": "2024",
+        "type": "国际在线现场报道",
+        "supports": "春节会期、灯会、表演与实景照片"
+      }
+    ],
+    "factBoundary": "现场图显示骑手与摩托车在两座高台之间腾空，车轮和身体轮廓是辨认节目的依据。图像只能证明拍摄瞬间的表演状态，不能推导车速、飞跃长度或训练方法；这些技术数据并未收录。",
+    "artisticCompletion": "构图、人物外貌、动作瞬间、观众数量、光照与局部材质为艺术补全；不表示实景的精确空间或当届完整布置。",
+    "referenceImage": "assets/details-generated/object-kf-ws-03-stunt-bike.webp",
+    "prompt": "Use case: illustration-story. Asset: a newly composed horizontal 16:9 AI concept illustration for the Kaifeng Wansui Mountain temple fair website, not a documentary photo.\nReferences: first image supplies fair atmosphere; second supplies the motorcycle/rider costume and refined Chinese 2D animation style. Draw a new composition, not a crop.\nScene: one professional motorcycle performer in a black protective suit and a closed full-face orange-black helmet, riding a coherent orange-black two-wheeled motorcycle during a public show. Show a clean near-side view suspended against late-afternoon sky, both boots on foot pegs, gloved hands holding handlebars. Two complete distinct circular spoked wheels, coherent frame, visible protective helmet and suit are central. Put the performer in the upper center-left, with an old-style red timber scenic pavilion to the right, lanterns and treetops farther back. Spectators in ordinary winter coats remain small in the lower-right at a visibly separate viewing boundary, heads turned toward the show.\nThree observation points: the rear wheel at middle-left, rider's helmet/suit in upper center, distant crowd in lower-right. Crisp details on bike, softer crowd. Golden late-day light, natural colors, fine outlines, soft hand-painted shading, realistic proportions, sophisticated 2D Chinese animation.\nDo not add a procedural diagram, trajectory, stunt instructions, speed/height measurements, ramps, arrows or dramatic crash. Do not depict spectators directly beneath the motorcycle. No invented branded costume logos. No lettering, UI, labels, watermark or borders; no 3D and no photographic realism. A complete independent illustration.",
+    "sha256": "e775cc1fc3fe580d7af0dbb6845d1d9c1aff101eb47e50a5a1fda7b38ab91dae",
+    "revisionPrompt": null
+  },
+  {
+    "id": "ly-gl",
+    "city": "洛阳",
+    "fair": "关林春节庙会",
+    "image": "assets/trails/ly-gl.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2024-02-13现场报道，拍摄日未披露",
+    "sources": [
+      {
+        "title": "人气爆棚！洛阳关林三国文创市集为何受欢迎？",
+        "url": "https://hn.ifeng.com/c/8X8WynP3CVk",
+        "year": "2024-02-13",
+        "type": "凤凰网河南现场图文",
+        "supports": "魏蜀吴分区、互动流程及实景图"
+      }
+    ],
+    "factBoundary": "实景近照记录木质展示块上的三国人物小摆件，其中有绿帽红脸形象。它以色彩和衣冠压缩人物特征，适合观察文创如何组织主题；不同角色身份与商品材质未逐一核实，不能仅凭画面统一命名。",
+    "artisticCompletion": "人物外貌与人数、镜头视角、局部陈设及光照为艺术补全；不作为精确复原或当届实况。",
+    "referenceImage": "assets/details-generated/object-ly-gl-04-redface-figure.webp",
+    "prompt": "Use case: illustration-story. Asset: a standalone 16:9 horizontal observation scene in the Guandi/Guanlin temple-fair interactive website.\nPrimary request: draw a NEW close view of a hand-painted Three Kingdoms character souvenir at a Luoyang Guanlin fair stall. Reference 1 supplies stall atmosphere, reference 2 supplies the red-face green-hat miniature design and painted 2D Chinese animation style. Do not crop either source.\nComposition: from the visitor's eye just above the counter, two natural adult hands hold ONE palm-sized red-faced warrior figurine in the center-left, one palm supporting its base and the other lightly steadying its back. The object has a vivid red face, long black painted beard, green cap with a gold band, green garment and simple small pedestal, matching referenced souvenir styling. A corner of the visitor's dark everyday winter coat is visible; only part of a friendly stallholder in a red jacket appears at upper-right. On right side of the counter, clearly separated stepped plain wooden display blocks carry a small number of other painted figurines; wood grain and tiers readable. Soft red canopy, gray temple roof and blurred modern visitors beyond.\nThree distinct focal regions: red face / green cap upper-center-left; hands and palm-scale lower-center-left; wooden tiered blocks at right. Render the miniature as a commercial playful rounded souvenir, not a living miniature person. Its stylization can have a large head while all human anatomy remains naturally proportioned.\nFine clean contours, richly controlled 2D Chinese animation illustration, gentle warm daylight, softly painted materials, natural color, tactile wood and glossy painted ornament. No letters, temple plaques, numbers, price tags, logos, UI, labels, arrows, panels or watermark. The miniature's exact vendor design is an artistic interpretation, do not imply archaeological evidence.",
+    "sha256": "00cd43759b726c81a57ae27affeaf0e109ca2f30c86fa378537b3e5484945ede",
+    "revisionPrompt": null
+  },
+  {
+    "id": "pds-tw",
+    "city": "平顶山",
+    "fair": "汝州汤王街古镇庙会",
+    "image": "assets/trails/pds-tw.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2018年第3期历史游记文字依据",
+    "sources": [
+      {
+        "title": "逛庙会过大年",
+        "url": "https://www.fx361.com/page/2018/0423/16816663.shtml",
+        "year": "2018年第3期",
+        "type": "资源导刊游记",
+        "supports": "夜间灯饰、糖画摊与叫卖的历史记录"
+      }
+    ],
+    "factBoundary": "游记记录糖画摊和桌面展示，图中将金黄色线条铺在浅色平面上，方便近距离观察图案逐步成形。具体动物造型和制作动作没有实拍支持，这里不提供温度、配方或完整工艺步骤。",
+    "artisticCompletion": "人物外貌与人数、镜头视角、局部陈设及光照为艺术补全；不作为精确复原或当届实况。",
+    "referenceImage": "assets/details-generated/object-pds-tw-04-sugar-drawing.webp",
+    "prompt": "Use case: illustration-story.\n独立横向16:9细腻二维国漫近景插画；自然人体比例、清晰细线、柔和上色，温暖自然光，朱红金黄松绿局部点缀，材质细节丰富。延续参考图但重新构图绘制，不裁切放大、不拼贴、不分格。画内没有文字、字母、数字、标志、水印、箭头、热点或UI。普通游客穿现代日常衣服，表演者按记录主题着装。人体手脚准确；主体和3个观察细节清楚，背景适度简化。依据2018汤王街游记糖画摊主题。浅色石台左下金黄透明糖线连成简单鸟形，中心手艺人自然右手持小勺，勺口靠近桌面有短细糖线，右上两支竹签成品竖起。后景便装游客与灯笼古街。图案工具艺术补全，不画完整制作教程。\n参考图1为场景氛围，参考图2为材质和人物自然比例参考。新图为更俯视的工作台近景，不复刻参考的龙形大图案。石台左下只画一只简单清晰的小鸟糖画，连贯金黄糖线能看见透明反光；中部勺尖距离台面很近，一条短糖丝连接台面，右上展示架只有两支竹签成品。手指与手握勺自然正确。台面干净，不散落过多糖线。人物头部可部分出画，让三处细节成为主角。去掉所有牌匾和联文，背景无文字。",
+    "sha256": "a276fd4ae01266907f91869bda5b3425694fb3ca7f1402a9f31be471313b28a8",
+    "revisionPrompt": null
+  },
+  {
+    "id": "ay-dk",
+    "city": "安阳",
+    "fair": "道口火神庙会",
+    "image": "assets/trails/ay-dk.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2025-02-24现场报道",
+    "sources": [
+      {
+        "title": "安阳滑县：道口古会 续写传承",
+        "url": "https://www.sohu.com/a/863614633_121375869",
+        "year": "2025",
+        "type": "河南日报账号现场图文",
+        "supports": "2月24日开会、表演、服饰、食品及普法服务台"
+      }
+    ],
+    "factBoundary": "2025报道记述腰挎竹制木马的竹马表演，演员仍以双脚在地面移动。马形道具把身体包在一个可辨的角色轮廓里，与真正骑马不同；插画的马头纹样、裙边和尺寸属于艺术补全。",
+    "artisticCompletion": "构图、人物外貌、动作瞬间、观众数量、光照与局部材质为艺术补全；不表示实景的精确空间或当届完整布置。",
+    "referenceImage": "assets/details-generated/object-ay-dk-03-bamboo-horse.webp",
+    "prompt": "Use case: illustration-story.\n独立横向16:9细腻二维国漫近景插画；自然人体比例、清晰细线、柔和上色，温暖自然光，朱红金黄松绿局部点缀，材质细节丰富。延续参考图但重新构图绘制，不裁切放大、不拼贴、不分格。画内没有文字、字母、数字、标志、水印、箭头、热点或UI。普通游客穿现代日常衣服，表演者按记录主题着装。人体手脚准确；主体和3个观察细节清楚，背景适度简化。2025道口竹马巡演记录主题。一位成年演员腰挎竹制马形道具，马头伸向左，围身马形框与彩布裙在中心，右下演员两条腿脚自然落地且可见。瓦顶古街与两侧便装观众后景。具体花纹艺术补全，不画真实活马或藏掉双脚。\n参考1是巡游父场景，参考2是道具与服装连续性。新图从演员右后侧看向左前，取单个人物全身侧面偏近构图（头饰和双脚都完整留在画面），一个竹马道具环绕腰部，白色马头伸向画面左侧，腰围红色彩绣织物居中，演员两条自然的人腿从裙下伸出、两个脚都清晰在石板地面；不画马腿，不能画成骑着真马。双手自然轻扶道具或短彩杆。周围观众在画面两边后景小而柔和，灰瓦街景和少量红灯笼保持参考风格，无雪花飞舞，不画文字。全幅16:9，单场景完整构图。",
+    "sha256": "578c9284b5256ffca36eaa51cadc624d9d3b2e1c9ce7876caba9cb2c9e095b4e",
+    "revisionPrompt": null
+  },
+  {
+    "id": "xx-bg",
+    "city": "新乡",
+    "fair": "比干庙新春迎财祈福庙会",
+    "image": "assets/trails/xx-bg.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2025年2月3日实况文字",
+    "sources": [
+      {
+        "title": "“五福”送祝福 民俗表演添喜气",
+        "url": "https://news.xxrb.com.cn/html/2025/xxws_0205/400479.html",
+        "year": "2025",
+        "type": "平原晚报现场报道",
+        "supports": "2月3日五福巡游的起点、人物、道具、锣鼓"
+      }
+    ],
+    "factBoundary": "如意、寿桃等道具见于2025巡游文字，图中寿桃被演员托举，成为从人群中辨认祝福角色的线索。具体尺寸、材质与纹样没有实拍依据，因此只说明它在巡游中作为持物出现，不附会固定队位或仪式动作。",
+    "artisticCompletion": "五人服装细节、排列、舞台式样和动作构图艺术补全，不复原完整路线。",
+    "referenceImage": "assets/details-generated/object-xx-bg-03-peach-prop.webp",
+    "prompt": "Use case: illustration-story.\n独立横向16:9细腻二维国漫近景插画；自然人体比例、清晰细线、柔和上色，温暖自然光，朱红金黄松绿局部点缀，材质细节丰富。延续参考图但重新构图绘制，不裁切放大、不拼贴、不分格。画内没有文字、字母、数字、标志、水印、箭头、热点或UI。普通游客穿现代日常衣服，表演者按记录主题着装。人体手脚准确；主体和3个观察细节清楚，背景适度简化。依据2025比干庙五福巡游寿桃持物记载。一位成年送福演员双手托粉红桃形道具，桃在中左、双手在中下、绿色金色宽袖在右，庙院与便装游客淡背景。不画福字等文字，不指定神祇、固定队位或仪式；桃大小和服纹艺术补全。\n图1为巡游气氛参考，图2为桃形持物及服装材质参考。新图采用从观众一侧看到的胸前与双手近景，人物面部在画外，只表现胸前宽袖和双手轻托道具；金黄衣服配松绿色刺绣，延续参考而简化复杂纹样。桃是比真实桃大但能双手托举的粉白粉红道具、下端有几片绿色叶片；清楚表现手在桃下面而不是穿进桃。道具位于中左，托举双手在中下，金黄绿纹宽袖和衣料褶皱在右边。后景是红柱庙院和便装游客的柔和色块。不要画长生神迹、神光、神像或福寿字，不画切开的桃或内部结构。",
+    "sha256": "731d4a531dc8cfcaa90f759cf6838834aff85f4c76f32d5d41d52ade2850c814",
+    "revisionPrompt": null
+  },
+  {
+    "id": "jz-ysc",
+    "city": "焦作",
+    "fair": "焦作影视城新春庙会",
+    "image": "assets/trails/jz-ysc.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2026预告配图，拍摄年份未披露",
+    "sources": [
+      {
+        "title": "预告！焦作影视城新春庙会将全新上演！",
+        "url": "https://www.sohu.com/a/980909735_121106991",
+        "year": "2026-01-28",
+        "type": "同源公开转载及配图",
+        "supports": "照片可访问镜像；拍摄年份未披露"
+      }
+    ],
+    "factBoundary": "靠旗在预告的戏曲配图中清晰可见，向肩后展开的旗面让角色轮廓大于日常身体尺度。插画的旗色、纹样与数量经过艺术转译，不能凭这些细节断定剧目、行当或扮演的具体历史人物。",
+    "artisticCompletion": "依2026预告配图作艺术转译；原配图拍摄年份未披露，不作为当届已举办证明。人物外貌、镜头、光照、局部装饰及背景模糊细节为艺术补全。",
+    "referenceImage": "assets/details-generated/object-jz-ysc-03-opera-backflag.webp",
+    "prompt": "Use case: illustration-story.\n独立横向16:9细腻二维国漫近景插画；自然人体比例、清晰细线、柔和上色，温暖自然光，朱红金黄松绿局部点缀，材质细节丰富。延续参考图但重新构图绘制，不裁切放大、不拼贴、不分格。画内没有文字、字母、数字、标志、水印、箭头、热点或UI。普通游客穿现代日常衣服，表演者按记录主题着装。人体手脚准确；主体和3个观察细节清楚，背景适度简化。依据2026焦作影视城预告戏曲配图，拍摄年未披露。成年戏曲演员四分之三侧后中近景，左上三角靠旗展开，中央肩背与靠旗连接的外观，右下彩绣戏衣。舞台和观众淡化，不画内部结构、文字或具体角色标志。数量纹样艺术转译。\n图1提供舞台色彩，图2提供靠旗与靠衣外观和细腻二维绘画风格。新构图更靠近演员左肩后方，从侧后看肩背和腰身，四面红底金边三角靠旗在画面左上展开，旗杆自然朝背部收拢，中央能够看到杆与背部服装接近处的外观但不画穿透或剖面。肩甲布料边缘和金线纹样居中，右下是有厚度与折痕的红金绣衣。只露一小部分头饰和侧脸，背景红柱戏台和观众柔化。靠旗不要插进人体，服装不要金属盔甲化，不仿考古展品。四旗杆清楚但不标注数量意义或装配教学。纹样使用无字卷草花纹，避免文字形装饰。不要复制参考的整身手势与布局。",
+    "sha256": "a6fa410a6ac5566511324c7812860ff3e44dda6b08231d802a323478eaecb770",
+    "revisionPrompt": null
+  },
+  {
+    "id": "py-xq",
+    "city": "濮阳",
+    "fair": "瑕丘庙会",
+    "image": "assets/trails/py-xq.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2019-02-22历史记载；院落外观补全",
+    "sources": [
+      {
+        "title": "万人同吃流水席",
+        "url": "https://news.ifeng.com/c/7kWLskggBPs",
+        "year": "2019",
+        "type": "凤凰图片／视觉中国图集",
+        "supports": "2月22日五星乡后堌堆村，烹饪、分装、传菜及围桌共食"
+      }
+    ],
+    "factBoundary": "2019报道记村务监督所院内有六口大锅集中烹饪，说明供餐不是每桌独立做饭。插画用前后排列突出协作规模，锅的材料、容量及灶体构造没有测量资料，不能根据画面推算供餐人数或火力。",
+    "artisticCompletion": "构图、人物外貌、动作瞬间、观众数量、光照与局部材质为艺术补全；不表示实景的精确空间或当届完整布置。",
+    "referenceImage": "assets/details-generated/object-py-xq-04-communal-pot.webp",
+    "prompt": "Use case: illustration-story.\n独立横向16:9细腻二维国漫近景插画；自然人体比例、清晰细线、柔和上色，温暖自然光，朱红金黄松绿局部点缀，材质细节丰富。延续参考图但重新构图绘制，不裁切放大、不拼贴、不分格。画内没有文字、字母、数字、标志、水印、箭头、热点或UI。普通游客穿现代日常衣服，表演者按记录主题着装。人体手脚准确；主体和3个观察细节清楚，背景适度简化。依据2019瑕丘庙会后堌堆村集中供餐记录。左侧大锅与蒸汽，中心朴素冬装成年帮厨把食物盛入大盆，右侧另一成年村民把食物分到一排素色碗碟。乡村院落后景暗示其余锅和通道，不必完整画六锅。不画售卖招牌、价格、固定菜名或祭礼。\n图1为乡村会场供餐氛围，图2为铁锅材质与帮厨衣着参考。新图改从分餐桌一侧斜望大锅，桌面形成左至右的空间关系：左侧黑色大锅位于矮砖灶上，中心不锈钢大盆放在坚固木桌边，右侧一排白碗与一名帮厨的手部。左侧帮厨刚用大勺从大锅盛起一勺混合菜，勺子停在盆上方；右侧帮厨另持小些的勺子正向一个白碗盛食物，手和两个勺柄不要交叉打结。只画正常成人的双臂双手，帮厨穿普通冬装围裙，无厨师高帽。自然暖冬日光，蒸汽适度不遮盖器物。后景淡化乡村院落和围桌人影。不给食物命名，混合菜只是艺术补全。不得画购物付钱、商品价签、宗教仪式或UI。",
+    "sha256": "75633ede492f57d1e13dabaad70e54c64054f1145029a395e687cffd3c770f96",
+    "revisionPrompt": null
+  },
+  {
+    "id": "xc-bl",
+    "city": "许昌",
+    "fair": "灞陵桥新春庙会",
+    "image": "assets/trails/xc-bl.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2026春节现场报道；卡面与服饰补全",
+    "sources": [
+      {
+        "title": "新春走基层丨灞陵桥畔三国灯",
+        "url": "https://www.ctnews.com.cn/dongtai/content/2026-02/23/content_184300.html",
+        "year": "2026",
+        "type": "中国旅游新闻网现场报道",
+        "supports": "主题、入园场景、灯组、NPC与夜演、图片及视频入口"
+      }
+    ],
+    "factBoundary": "2026报道记载“大乔”向游客派发“过桥费”任务卡。“过桥费”在这里是互动情境的名称，当前材料没有证明现场按卡收费。卡面以桥纹表达主题，是插画设计，不能作为原卡复制件。",
+    "artisticCompletion": "发卡行为有文字依据；卡片形状、桥纹与任务内容未取得实物证据。",
+    "referenceImage": "assets/details-generated/object-xc-bl-04-quest-card.webp",
+    "prompt": "Use case: illustration-story. 为许昌灞陵桥庙会交互网站生成一张16:9横向新国漫场景图：任务卡递交的近景。附图只作古装角色浅蓝宽袖、现代游客穿着、纸卡气质与国漫画风参考，不要裁切放大。新的镜头从桌面斜侧方近看，两只自然的手分别从左上和右下递接一张完整米色厚纸卡，卡片横置于画面中央，只有简洁红色拱桥和云纹装饰，没有任何文字、编号、印章或打卡格。左边角色穿浅蓝带淡金花纹的宽袖，另一边游客是奶油色现代冬装。让纸卡红色边框、两人递接的手势、浅蓝宽袖三处细节彼此分开。边缘露出两人的微笑侧脸，后景是灰石栏杆、红灯笼、庙会人群与木制互动点，轻微虚化但仍有生活情境。精细二维中国动漫，细线清晰、柔和上色、暖自然光、自然人体比例、正确手指与手腕，无多余手臂。纯场景，没有UI、文字标签、箭头、水印，不画积分奖励、未证实的任务规则或具体三国历史人物。这是现代庙会角色互动的AI概念插画。",
+    "sha256": "22b5c7848760fcd0eb4b143ed9e7970889fb933ccd5c820f92869ee50d1684e9",
+    "revisionPrompt": null
+  },
+  {
+    "id": "lh-hsj",
+    "city": "漯河",
+    "fair": "河上街庙会灯展",
+    "image": "assets/trails/lh-hsj.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2020年1月20日活动；往届美食参考",
+    "sources": [
+      {
+        "title": "漯河市2020新春美食文化节活动启动｜国际在线",
+        "url": "https://hn.cri.cn/20200120/16d0322e-25d4-88a0-7b21-b417a38e8500.html",
+        "year": "2020",
+        "type": "往届现场报道",
+        "supports": "布衣巷美食及片鸭、试吃场景"
+      }
+    ],
+    "factBoundary": "2020照片记录白衣高帽厨师在台面上片鸭，旁边陈列餐盘。托盘承接操作中的食品，把工作区集中在游客可观看的位置；画中片鸭瞬间是艺术转译，不是关于刀具使用与加工顺序的教程。",
+    "artisticCompletion": "构图、人物外貌、动作瞬间、配色与远近景细节为艺术补全；空间仅参考已有资料，不是测绘复原。",
+    "referenceImage": "assets/details-generated/object-lh-hsj-05-carving-tray.webp",
+    "prompt": "Use case: illustration-story. 为河南庙会交互网页生成一张新的16:9横幅国漫场景图。主题是漯河河上街庙会中的厨师片鸭展台。参考图只用于人物、衣服、暖色国漫风格与场景气氛，不要直接裁切放大。镜头换成游客从台前稍高位置观看的近景：不锈钢托盘占下方中央，红褐色完整熟烤鸭在盘内，左上白厨师服戴口罩厨师的两只戴透明手套的手正稳稳扶鸭、用切片刀切下一片，手指与刀结构自然；右前方一个白瓷盘整齐摆着带皮薄鸭片，与托盘分离。三个清晰观察点是鸭皮切面、托盘孔洞与盘沿、白瓷盘中的鸭片排列。保留一位穿日常冬装的游客在后方侧看，远景红棚灯笼与年会人群柔和虚化。精细二维中国动漫插画，清晰线条，柔和上色，暖自然光，真实人体比例，食物诱人但不夸张，完整合理的手部。纯场景，不画文字、标签、箭头、数字、水印，不画UI或图表；不编造传统仪式。这是AI概念场景而非现场照片。",
+    "sha256": "279eb8f501230006c052494989e48b73936b36f8e5fc43490ce9cbd22dd20bde",
+    "revisionPrompt": null
+  },
+  {
+    "id": "smx-hg",
+    "city": "三门峡",
+    "fair": "函谷关新春大庙会",
+    "image": "assets/trails/smx-hg.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2026预告实景配图；拍摄年份未披露",
+    "sources": [
+      {
+        "title": "函谷关「新春大庙会」即将开启！来这里接全年福运！",
+        "url": "https://www.sohu.com/a/985707506_121106991",
+        "year": "2026-02-10",
+        "type": "函谷关旅游区预告（文旅转载）",
+        "supports": "会期、六大剧目、非遗及夜游"
+      }
+    ],
+    "factBoundary": "预告配图显示红色狮具在高桩上表演，周围有观众与广场立像。狮具的头部、长披覆和演员动作共同形成动物形象；单张照片不能证明完整舞步、队伍身份及该场的实际演出日期。",
+    "artisticCompletion": "红狮具体瞬间姿势、观众面孔与局部比例艺术化，不声称该场于2026已发生。",
+    "referenceImage": "assets/details-generated/object-smx-hg-03-red-lion.webp",
+    "prompt": "Use case: illustration-story. 生成一张16:9横向精细二维国漫插画，用于函谷关新春庙会的高桩舞狮互动近景。参考图只提供红金狮子道具、传统节庆配色及国漫画风，不要裁切原图。新镜头从观众位置略仰拍，红狮稳稳站在两根不同高度的金色舞狮桩上，完整的狮头在画面左中部，卷曲红绒毛、黑白圆眼、金色边饰和张开的嘴层次清楚；狮身红金披覆向右后方延展，披覆下能看到表演者穿鞋的脚稳踩桩顶圆盘，狮头与后身的支撑结构自然。让狮头圆眼、披覆绒边、脚与桩顶接触三处彼此分离可供图内互动。远景只留柔和的灰色关墙、红柱节庆挂饰、穿现代日常衣服的围观人群，观众与表演区分开。蓝天、暖阳，清楚线条、柔和色块、细腻绒毛和金属材质，自然比例，不画过于逼真的照片，不画杂乱重复人物。纯场景，不画文字、标签、数字、箭头、水印和UI。仅展示专业演出，不画教学步骤或指定表演顺序，艺术概念不是某届实况。",
+    "sha256": "5830f567484c1faf4a3d2afe7b74aa939effc8c6cf6ce38dbb4fb9ebf2e254b1",
+    "revisionPrompt": null
+  },
+  {
+    "id": "ny-sd",
+    "city": "南阳",
+    "fair": "赊店古镇新春庙会",
+    "image": "assets/trails/ny-sd.webp",
+    "nativeSize": [
+      1672,
+      940
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2026年2月开幕活动报道；具体拍摄日未逐图披露",
+    "sources": [
+      {
+        "title": "社旗：千年赊店启新岁 古镇庙会闹新春｜南阳文明网",
+        "url": "https://hnny.wenming.cn/wmdjr/202602/t20260224_9168321.html",
+        "year": "2026",
+        "type": "开幕实况",
+        "supports": "2月17日开幕、山陕会馆前及古镇广场表演、食品特产、会期"
+      }
+    ],
+    "factBoundary": "开幕活动照片显示红黄灯笼横穿赊店街道，临时主题横幅与两侧商铺同框。灯笼串为既有街巷增加节期色彩，并帮助远近层次显现；具体灯数、尺寸和悬挂技术没有由资料披露。",
+    "artisticCompletion": "构图、人物外貌、动作瞬间、配色与远近景细节为艺术补全；空间仅参考已有资料，不是测绘复原。",
+    "referenceImage": "assets/details-generated/object-ny-sd-02-lantern-rows.webp",
+    "prompt": "Use case: illustration-story. 为河南庙会交互网页生成新的横向16:9精细二维中国动漫场景插画。附图仅作现有画风、地方器物与色彩参考，重新构图，不得裁切放大。南阳赊店古镇的红黄灯笼街。新镜头从街边近处向上斜看，一对完整的红灯笼和黄灯笼在左上至中部，占画幅三分之一，灯笼底部垂下红色流苏，灯笼顶部连接横跨街道的悬线；悬线带着一排排越来越小的红黄灯笼沿木楼灰瓦古街向右后方延伸。下方保留现代冬装游客仰头观看、街边摊棚与木制店面，使近处灯笼和街巷深处形成层次。三个清晰观察点：红黄灯笼相邻的色彩、顶部挂扣与横向悬线、流苏与街巷纵深。无任何可读牌匾文字，门面招牌采用无字纯色木牌。 清晰线条，柔和上色，自然人体比例，暖自然光，材质细腻，现代普通游客穿日常服装，表演服饰按参考。纯场景，没有标签、UI、数字、箭头、水印或任何文字。不是三联图，不是白底商品照。此为AI概念场景，不声称某届现场，地方图案与陈设细节为艺术补全。",
+    "sha256": "07e509980a6ba6db903f8e8759e536db4eb4f1166b88ee2eabd1958e800574eb",
+    "revisionPrompt": null
+  },
+  {
+    "id": "sq-hst",
+    "city": "商丘",
+    "fair": "火神台庙会",
+    "image": "assets/trails/sq-hst.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2026年2月报道；具体拍摄日未披露",
+    "sources": [
+      {
+        "title": "在火神台，触摸“殷商之源”的根与魂｜河南日报",
+        "url": "https://www.hnsjb.cn/content/tuijian/20260227/1208068.html",
+        "year": "2026",
+        "type": "现场报道",
+        "supports": "2月25日外地英歌与本土祭祀队伍、麒麟舞、节气灯廊、当届会期"
+      }
+    ],
+    "factBoundary": "2026实景配图中有红绿蓝色麒麟道具，插画重点保留蓝色头部与角状轮廓。它与普通狮头不宜互换，是本例区别于其他庙会舞狮画面的物件线索；具体纹样寓意没有逐项来源解释。",
+    "artisticCompletion": "构图、人物外貌、动作瞬间、配色与远近景细节为艺术补全；空间仅参考已有资料，不是测绘复原。",
+    "referenceImage": "assets/details-generated/object-sq-hst-03-qilin-head.webp",
+    "prompt": "Use case: illustration-story. 为河南庙会交互网页生成新的横向16:9精细二维中国动漫场景插画。附图仅作现有画风、地方器物与色彩参考，重新构图，不得裁切放大。商丘火神台麒麟舞道具。新构图从麒麟左前方与舞者同高观看，蓝色麒麟头占画面左中，金色角、黑白大眼、红绸结、黄色须穗有完整层次，头后的蓝色鳞片披覆往右延伸，下方露出穿红色衣服的表演者一部分身体和双腿，体现这是一副由人舞动的节庆道具。远处可见围观群众与灰瓦古建但不照搬原参考全部广场。三处清晰观察区：金角和眼部、红绸与黄须、蓝色鳞片披覆。保留参考形象，不新增神兽器官，不画真实活兽、剖面、断面或悬浮身体。 清晰线条，柔和上色，自然人体比例，暖自然光，材质细腻，现代普通游客穿日常服装，表演服饰按参考。纯场景，没有标签、UI、数字、箭头、水印或任何文字。不是三联图，不是白底商品照。此为AI概念场景，不声称某届现场，地方图案与陈设细节为艺术补全。",
+    "sha256": "6f07be271774ad49b5fc27bc94d0a1d429f3ed8f6e084f8eea41c732a98b128f",
+    "revisionPrompt": null
+  },
+  {
+    "id": "xy-pgs",
+    "city": "信阳",
+    "fair": "濮公山三月三庙会",
+    "image": "assets/trails/xy-pgs.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2026游园会现场文字；服饰道具缺近照",
+    "sources": [
+      {
+        "title": "濮公山街道：濮公山“三月三”游园会热闹开场｜息县政府",
+        "url": "https://www.xixian.gov.cn/2026/04-18/780751.html",
+        "year": "2026",
+        "type": "官方现场报道",
+        "supports": "4月17日开场、巡游线路及时段、主舞台与手作空间"
+      }
+    ],
+    "factBoundary": "旱船项目及随鼓点摇摆的描述来自2026官方报道。围在身体外的船形道具在图中说明人如何扮演行船，但具体结构、花饰与裙摆颜色为概念设计，没有证据说明当地队伍使用同样样式。",
+    "artisticCompletion": "有活动文字，无道具近照；外形与装饰为艺术补全。",
+    "referenceImage": "assets/details-generated/object-xy-pgs-03-dry-boat-skirt.webp",
+    "prompt": "Use case: illustration-story. 为河南信阳濮公山三月三庙会交互网页生成一幅新的16:9横幅细腻二维国漫插画，主题旱船的围身船体。附图仅作服饰、器物、色彩和画风参考，不要对原图裁切放大。新镜头从表演者侧前方近看，完整轻巧的椭圆船形骨架围在女表演者腰间，竹色细杆沿船沿弯曲并用小绑带连接，鲜红布围住船侧，嫩绿色布褶垂在下面，船沿扎红色布花，穿米白红边绣花上衣的表演者双手轻扶两边船沿，双腿可在船下看见，站在真实地面而不是水上。观察点明确分离：左前船沿竹杆连接、中间红布花、右侧红绿布褶与下方行走双腿。画面包含完整船体，占画幅六成，人物自然比例、手指正确；后方鼓手和现代日常装围观游客柔和虚化，灰瓦建筑与浅山作为环境，不新增地方地标。清晰线条，柔和上色，暖阳，红绿点缀但自然协调，织物竹材细腻。只画场景，无文字、UI、箭头、数字、剖面或水印；不指定传统舞步和仪程。这是艺术概念，不是某届现场。",
+    "sha256": "7b2445cd8686564e9d8ff239da08cbf90c1f3fa6af2b5eb96c6837621726cd4c",
+    "revisionPrompt": null
+  },
+  {
+    "id": "zk-th",
+    "city": "周口",
+    "fair": "太昊陵庙会",
+    "image": "assets/trails/zk-th.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2026年3月20日活动；2026年3月26日报道",
+    "sources": [
+      {
+        "title": "周口：特色民俗展演飨市民｜河南文明网",
+        "url": "https://hen.wenming.cn/difangdongtai/202603/t20260326_6974133.html",
+        "year": "2026",
+        "type": "现场报道",
+        "supports": "担经挑、展演日期、定点与巡游及主要场地"
+      }
+    ],
+    "factBoundary": "2026担经挑报道提到肩挑的竹编彩绘花篮及吉祥纹样，能确认花篮是表演识别物件。图中篮面花纹、花束和悬挂细节为绘画补全，资料并未给出某一套篮具的尺寸、制作者或完整图样。",
+    "artisticCompletion": "物件类型有文字依据；具体纹样、悬挂结构与动作瞬间为补全。",
+    "referenceImage": "assets/details-generated/object-zk-th-03-flower-baskets.webp",
+    "prompt": "Use case: illustration-story. 为河南庙会交互网站生成一张全新的横向16:9细节插画。所附图片只作为既有作品的画风、人物服饰与器物造型参考，不要对原图裁切放大。主题：淮阳太昊陵担经挑中的竹编彩绘花篮。新镜头来到表演者身侧，以花篮和挑担连接关系为主角：前景左中部一个完整圆腹竹编花篮占画幅约一半，篮口有红黄粉色花饰，米黄色竹篾经纬交错，篮腹有花卉彩绘；右上方可见红绳绑结连接竹挑担，表演者穿粉色绣花衣袖的手扶着绳侧，第二只花篮远在身后，保证肩挑两篮的关系可理解。三个互不重叠的清晰观察区是竹编篮腹、篮口花饰、连接挑担的红绳结。背景浅景深的围观游客穿现代日常衣服和灰瓦红柱院落。精细二维国漫，清晰线条，柔和自然上色，暖阳，真实自然人体比例，材质细节丰富，保持参考图的色彩气质。新构图要有空间、完整器物和环境，避免纯白器物图、三联图、剖面图、UI截图。只画场景，不要任何文字、标签、箭头、数字、边框、水印。艺术概念场景，不声称某一届实况，不新增仪式程序。",
+    "sha256": "0da61ea4de9f5f7e5b54ea0901bdd8a5c2cf2dd8006178ffc01c2271f6373964",
+    "revisionPrompt": null
+  },
+  {
+    "id": "zmd-hj",
+    "city": "驻马店",
+    "fair": "皇家驿站新春庙会",
+    "image": "assets/trails/zmd-hj.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2026节目预告及实况综述；缺古戏台近照",
+    "sources": [
+      {
+        "title": "皇家驿站新春庙会节目单出炉｜驻马店广视网",
+        "url": "https://www.zmdtvw.cn/showinfo-252-377620-0.html",
+        "year": "2026",
+        "type": "当届预告",
+        "supports": "初一至十五、节目品类及驿马广场/古戏台/运河西街/驿马大道"
+      },
+      {
+        "title": "马年春节“驻马店”有点火｜文旅信息转载",
+        "url": "https://www.sohu.com/a/989265295_121106991",
+        "year": "2026",
+        "type": "全市活动综述",
+        "supports": "仅采用皇家驿站段：豫剧、抛绣球、运河互动和亲子活动"
+      }
+    ],
+    "factBoundary": "2026资料支持皇家驿站有豫剧演出，却未逐项说明剧目与戏服。插画以长袖动作帮助读者辨认戏曲表演的身体表达，袖长、衣纹、角色和动作均属艺术设计，不能据此复述实际唱段内容。",
+    "artisticCompletion": "戏衣与姿态未有现场近照，不能指认具体角色。",
+    "referenceImage": "assets/details-generated/object-zmd-hj-03-opera-sleeve.webp",
+    "prompt": "Use case: illustration-story. 为河南驻马店皇家驿站庙会网站生成一幅新的横向16:9精细二维国漫插画，主题古戏台豫剧表演中白色长袖的细节。参考图仅作人物服饰、舞台气氛及画风参考，必须重新构图，不能裁切放大。新镜头贴近舞台侧前方，以一位穿红色花卉绣纹戏衣的成年旦角演员为中心，头饰与面容自然精致，一只手抬在左侧使白色长袖形成完整柔软的弧线，另一只手向右伸出，白布从有蓝色绣边的袖口延续下垂。让白色袖布的自然褶皱、红蓝绣花袖口、演员的手势三个观察点清楚分离，并保持两只手和两条手臂结构正确。背景保留木柱、红色帷幕和稍虚化的台下日常冬装观众；不要指定剧目和角色名，不增加舞步分解。暖自然舞台光，线条清晰、柔和上色，织物细腻但整体为二维国漫，真实人体比例。纯场景无文字、标签、数字、箭头、UI或水印；艺术概念场景而非某年演出实况。",
+    "sha256": "9ba3b7b4aa1302a8833f6b7f21df2a2b6215c15d291fa52f0f62c7a402e38978",
+    "revisionPrompt": null
+  },
+  {
+    "id": "jy-sl",
+    "city": "济源",
+    "fair": "思礼清明庙会",
+    "image": "assets/trails/jy-sl.webp",
+    "nativeSize": [
+      1672,
+      941
+    ],
+    "webSize": [
+      1664,
+      936
+    ],
+    "crop": [
+      4,
+      2,
+      1668,
+      938
+    ],
+    "tool": "built-in imagegen",
+    "aiConcept": true,
+    "sourceYear": "2026集市报道；食物外观另参地方美食资料",
+    "sources": [
+      {
+        "title": "春潮涌动济水畔 消费升温动能足",
+        "url": "https://www.jiyuan.gov.cn/zwyw/zwyw_22093/t999928.html",
+        "year": "2026-04-08",
+        "type": "济源日报现场报道（政府转载）",
+        "supports": "本地食物、手作、日用商品与询价声"
+      },
+      {
+        "title": "图文依据补充来源",
+        "url": "https://m.tuniu.com/cuisine/511/",
+        "year": "2026集市报道；食物外观另参地方美食资料",
+        "type": "插画生成记录所列来源"
+      },
+      {
+        "title": "图文依据补充来源",
+        "url": "https://h5.ifeng.com/c/vivoArticle/v002rnYdgHJG08qATvvyKTX--yp36uk8LrRuJj1bdhj3yZlc__?isNews=1&showComments=0&vivoBusiness=hiboardnews",
+        "year": "2026集市报道；食物外观另参地方美食资料",
+        "type": "插画生成记录所列来源"
+      }
+    ],
+    "factBoundary": "鸡蛋不翻被2026集市报道明确提及，其帽状外观来自另行核对的地方食品资料。图中金黄色成品与土馍小颗粒形成对照，方便辨认品类；实际尺寸、出品火候和摊位制作流程仍未获实拍证据。",
+    "artisticCompletion": "实报支持名称，外观属于地方器物参考，不作实际制作教程。",
+    "referenceImage": "assets/details-generated/object-jy-sl-04-egg-bufan.webp",
+    "prompt": "Use case: illustration-story. 生成河南济源思礼清明庙会食品摊的新16:9横幅国漫近景插画，主题鸡蛋不翻。附图只作食品帽状外观、摊位暖色与画风参考，重新设计镜头，不裁切放大。近处木托盘上几只金黄色鸡蛋不翻，成品是圆形薄饼外沿铺开、中央鼓起，像小帽子；表面是煎制的金黄与浅褐斑点，不要夸张烘焙光泽，不画成包子、蛋挞或面包。左中一只成品完整显示，右侧摊主手端一张简洁无字纸托，纸托里放一只同样外形的成品，游客伸手接近纸托边缘。让鼓起的中心、较平的外沿、递出的纸托三个观察点各自清楚。另一侧背景露出装着浅色颗粒土馍的袋子，后景红蓝篷布与现代日常服装的赶会游客虚化，不新增具体门店。精细二维中国动漫，细线清晰，柔和自然上色，暖阳，真实手部结构和人体比例，食品材质有细节，保持既有网站画风。没有文字、UI、标签、数字、箭头、水印；没有配方、炉具过程和制作教学。艺术概念场景，不声称现场尺寸和包装方式。",
+    "sha256": "66788bb86f8d33c38dc2d839083b9e65ffbef0d8ad52a930ccc8ba939d8af8e2",
+    "revisionPrompt": null
+  }
+]

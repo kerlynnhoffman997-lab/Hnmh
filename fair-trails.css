@@ -1,0 +1,57 @@
+/* Sequential picture stories share the existing scene surface and reading flow. */
+html body.adaptive-layout.immersive-active.fair-trail-active #main-image-container { overflow:clip!important; }
+body.fair-trail-active:not(.reading-page) #caption-reading { overflow-y:auto; padding-right:12px; box-sizing:border-box; }
+#picture-caption .fair-trail { box-sizing:border-box; width:100%; margin:0 0 16px; padding:14px 0 16px; border-bottom:1px solid #dbc99f50; color:#f2e6ca; pointer-events:auto; }
+.fair-trail-kicker { display:flex; justify-content:space-between; align-items:center; gap:14px; color:#e9cb8f; font:11px/1.6 'Microsoft YaHei',sans-serif; letter-spacing:.08em; }
+.fair-trail-step { flex:none; font:12px/1.6 Georgia,serif; letter-spacing:.12em; }
+#picture-caption .fair-trail .fair-trail-copy { display:block; max-width:42em; overflow:visible; -webkit-line-clamp:unset; margin:9px 0 12px; color:#ece5d4; font:13px/1.85 'Microsoft YaHei',sans-serif; }
+.fair-trail-actions,.fair-trail-spot-controls { display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; }
+#picture-caption .fair-trail button { min-height:44px; max-width:100%; padding:8px 12px; border:1px solid #bda67c90; border-radius:6px; font:12px/1.6 'Microsoft YaHei',sans-serif; color:#fbefd1; background:#345042; cursor:pointer; touch-action:manipulation; }
+#picture-caption .fair-trail button[hidden],.fair-trail-spot-controls[hidden],.fair-trail-spot-story[hidden] { display:none!important; }
+#picture-caption .fair-trail .fair-trail-clue,#picture-caption .fair-trail .fair-trail-open-detail { border-color:#d9b36c; background:#ead9ae; color:#34452f; }
+#picture-caption .fair-trail .fair-trail-back-picture { background:transparent; border-color:#bda67c70; }
+#picture-caption .fair-trail button:focus-visible { outline:2px solid #e8c27b; outline-offset:3px; }
+#picture-caption .fair-trail button:disabled { opacity:.45; cursor:wait; }
+#picture-caption .fair-trail .fair-trail-status { display:block; overflow:visible; -webkit-line-clamp:unset; margin:9px 0 0; font:12px/1.7 'Microsoft YaHei',sans-serif; color:#eed5a1; }
+.fair-trail-status:empty { display:none!important; }
+html body.adaptive-layout #picture-caption .fair-trail .fair-trail-meta { display:block; margin-top:10px; font:10px/1.7 'Microsoft YaHei',sans-serif; letter-spacing:0; color:#c7c5b5; }
+.fair-trail-spot-controls { margin-top:12px; gap:5px 9px; }
+#picture-caption .fair-trail .fair-trail-spot-tab { border-color:transparent; background:transparent; padding:6px 8px; color:#e8d7b7; text-align:left; }
+#picture-caption .fair-trail .fair-trail-spot-tab[aria-pressed=true] { background:#ead9ae; color:#34452f; border-color:#d9b36c; }
+.fair-trail-spot-story { margin:10px 0 0; padding:12px 0 0; border-top:1px solid #c7b48d60; }
+#picture-caption .fair-trail-spot-story h2 { margin:0 0 5px; font:500 15px/1.6 'Noto Serif SC','Songti SC',SimSun,serif; color:#efd9ac; }
+#picture-caption .fair-trail-spot-story p { display:block; overflow:visible; -webkit-line-clamp:unset; max-width:none; color:#ece5d4; font:13px/1.85 'Microsoft YaHei',sans-serif; }
+#fair-trail-detail-image { position:absolute; inset:0; z-index:1003; width:100%; height:100%; max-width:none; max-height:none; object-fit:contain; object-position:center; background:#191e1c; pointer-events:none; user-select:none; }
+#fair-trail-detail-image[hidden] { display:none!important; }
+.fair-trail-spot-marker { position:absolute; z-index:1004; display:grid; place-items:center; width:48px; height:48px; min-width:48px; min-height:48px; transform:translate(-50%,-50%); border:0; padding:0; border-radius:50%; color:#fff8de; background:transparent; font:500 15px/1 Georgia,serif; text-shadow:0 1px 3px #314d3e; cursor:pointer; touch-action:manipulation; }
+.fair-trail-spot-marker::before { content:''; position:absolute; z-index:-1; inset:7px; border:2px solid #ffebba; border-radius:50%; background:#314d3ecf; box-shadow:0 0 0 4px #744b2755,0 2px 12px #191e1c40; }
+.fair-trail-spot-marker[aria-pressed=true]::before { background:#a35239; box-shadow:0 0 0 6px #f4d29666,0 0 20px #ffe8ab66; }
+.fair-trail-spot-marker:focus-visible { outline:2px solid #f4cd7d; outline-offset:2px; }
+html body.adaptive-layout.immersive-active .label.fair-trail-clue-target { outline:3px solid #ffe4a3!important; outline-offset:5px; background:#f3d28b!important; box-shadow:0 0 0 9px #af613636!important; }
+/* The selected detail tells its own story; restoring the original picture also
+   restores the existing text and its normal expansion controls. */
+body.fair-trail-detail-active #caption-reading>.caption-summary,body.fair-trail-detail-active #caption-more,body.fair-trail-detail-active #caption-expand { display:none!important; }
+body.reading-page #picture-caption .fair-trail { padding-top:8px; border-color:#b39a6c55; }
+body.reading-page .fair-trail-kicker { color:#9b5837; }
+body.reading-page #picture-caption .fair-trail .fair-trail-copy,body.reading-page #picture-caption .fair-trail-spot-story p { color:#52634e; }
+body.reading-page #picture-caption .fair-trail .fair-trail-status { color:#925332; }
+body.reading-page #picture-caption .fair-trail .fair-trail-back-picture,body.reading-page #picture-caption .fair-trail .fair-trail-spot-tab { color:#7f4a32; }
+body.reading-page #picture-caption .fair-trail .fair-trail-spot-tab[aria-pressed=true] { color:#34452f; }
+body.reading-page #picture-caption .fair-trail .fair-trail-meta { color:#7c755e; }
+body.reading-page #picture-caption .fair-trail-spot-story h2 { color:#914a34; }
+body.reading-page .fair-trail-spot-story { border-color:#b39a6c55; }
+body.reading-page #picture-caption .fair-trail button:focus-visible { outline-color:#a54d34; }
+@media (prefers-reduced-motion:no-preference) {
+ .fair-trail-clue-target { animation:fair-trail-clue .85s ease-in-out 5; }
+ .fair-trail-spot-marker::before { transition:background .15s,box-shadow .15s; }
+ @keyframes fair-trail-clue { 50% { filter:brightness(1.15); } }
+}
+@media (max-height:500px) and (orientation:landscape) {
+ #picture-caption .fair-trail { display:flex; flex-direction:column; padding:6px 0 10px; }
+ .fair-trail-actions { order:-1; margin-bottom:7px; }
+ .fair-trail-kicker { display:none; }
+ #picture-caption .fair-trail .fair-trail-copy { margin:4px 0 7px; font-size:12px; line-height:1.65; }
+ .fair-trail-spot-controls { margin-top:7px; }
+ .fair-trail-spot-story { margin-top:7px; padding-top:8px; }
+ #picture-caption .fair-trail-spot-story p { font-size:12px; line-height:1.7; }
+}

@@ -27,6 +27,7 @@
   let continuation = null;
   let visit = null;
   let clayTrail = null;
+  let regionalTrails = null;
   let souvenir = null;
   let visitRequest = 0;
   let activeFeature = null;
@@ -133,8 +134,9 @@
     if (entering || !isKnownNode(nodeId) || !pictureUrl(catalog?.[nodeId])) return false;
     home?.selectWorld(findFair(catalog[nodeId])?.id);
     if (nodeId === 'fair-hb-jx' && currentNode === ROOT_ID) clayTrail?.begin();
+    if (catalog[nodeId].kind === 'world' && currentNode === ROOT_ID) regionalTrails?.begin(nodeId);
     activeFeature = feature?.worldId === nodeId ? feature : null;
-    entering = true; home?.setEntering(true); visit?.setEntering(true); clayTrail?.setEntering(true);
+    entering = true; home?.setEntering(true); visit?.setEntering(true); clayTrail?.setEntering(true); regionalTrails?.setEntering(true);
     try {
       await viewerReady;
       await preloadPicture(nodeId);
@@ -153,7 +155,7 @@
       navigateViewer(ROOT_ID,{record:false});
       toast('画面暂未载入，请稍后重试。');
       return false;
-    } finally { entering = false; home?.setEntering(false); visit?.setEntering(false); clayTrail?.setEntering(false); }
+    } finally { entering = false; home?.setEntering(false); visit?.setEntering(false); clayTrail?.setEntering(false); regionalTrails?.setEntering(false); }
   }
 
   function isKnownNode(value) {
@@ -268,7 +270,7 @@
     const request = ++visitRequest;
     if (!visit || !pictureUrl(catalog?.[nodeId])) return;
     void waitForPicture(nodeId,{visible:true,timeout:25000}).then(shown => {
-      if (shown && request === visitRequest) { visit.record(nodeId); clayTrail?.record(nodeId); }
+      if (shown && request === visitRequest) { visit.record(nodeId); clayTrail?.record(nodeId); regionalTrails?.record(nodeId); }
     }).catch(() => {});
   }
 
@@ -317,6 +319,7 @@
     }
     renderFeatureRoute(entry, caption);
     clayTrail?.update(nodeId);
+    regionalTrails?.update(nodeId);
     continuation?.update(nodeId);
     doc.defaultView.FairReading?.update({nodeId, kind:entry.kind});
     // The native viewer selects the parent before pinning a deep-linked object.
@@ -336,7 +339,7 @@
       for (const type of ['pointerdown','mousedown','touchstart','click']) route.addEventListener(type,event => event.stopPropagation());
     }
     let target = null, label = '';
-    if (clayTrail && ['fair-hb-jx','scene-hb-jx-04','object-hb-jx-04-clay-bird'].includes(entry.id)) {
+    if ((clayTrail && ['fair-hb-jx','scene-hb-jx-04','object-hb-jx-04-clay-bird'].includes(entry.id)) || regionalTrails?.handles(entry.id)) {
       route.replaceChildren(); route.hidden = true; route.dataset.target = ''; route.dataset.context = ''; return;
     }
     if (activeFeature && activeFeature.worldId === findFair(entry)?.id) {
@@ -380,7 +383,10 @@
     catch { toast('这张图片暂未载入，请再试一次。'); throw new Error('Picture unavailable'); }
     if (request !== pictureRequest) return;
     const doc = frame.contentDocument, stage = doc.getElementById('main-image-container');
-    const current = doc.body.classList.contains('picture-detail') ? doc.getElementById('object-picture') : doc.getElementById('main-image');
+    const regionalPicture = doc.getElementById('fair-trail-detail-image');
+    const current = regionalPicture && !regionalPicture.hidden && regionalPicture.complete && regionalPicture.naturalWidth
+      ? regionalPicture
+      : doc.body.classList.contains('picture-detail') ? doc.getElementById('object-picture') : doc.getElementById('main-image');
     let snapshot;
     if (!reduceMotion() && current?.complete && current.naturalWidth) {
       const r = current.getBoundingClientRect(), s = stage.getBoundingClientRect();
@@ -550,9 +556,11 @@
       else return switchPicture(nodeId,{direction:'previous'});
     }});
     continuation = window.FairContinuation?.mount({frame,catalog,onNavigate:switchPicture,onMap() { navigateViewer(ROOT_ID); }});
-    souvenir = window.FairSouvenir?.mount({container:document.body});
+    souvenir = window.FairSouvenir?.mount({container:document.body,catalog});
     clayTrail = window.FairClayTrail?.mount({frame,home:document.getElementById('province-home'),onNavigate:switchPicture,
       onStart:() => enterFair('fair-hb-jx'),onSouvenir:stops => souvenir?.open({stops})});
+    regionalTrails = window.FairTrails?.mount({frame,home:document.getElementById('province-home'),catalog,onNavigate:switchPicture,
+      onStart:enterFair,onRestore:rememberVisiblePicture,onSouvenir:selection => souvenir?.open(selection)});
     const doc = frame.contentDocument, labels = doc.getElementById('labels-container');
     const prepareLabels = () => {
       for (const label of labels.querySelectorAll('.label[id]')) {

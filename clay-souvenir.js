@@ -7,8 +7,12 @@
     {id: 'scene-hb-jx-04', image: 'assets/scenes/hb-jx-04.webp', title: '走近泥咕咕摊', caption: '木架把鸟兽泥塑层层摆开，一件小物被托到游客眼前。'},
     {id: 'object-hb-jx-04-clay-bird', image: 'assets/details-generated/object-hb-jx-04-clay-bird.webp', title: '一只鸟形泥咕咕', caption: '短嘴、圆腹与彩色花点，把浚县的热闹收进小小泥鸟。'}
   ]);
+  const legacy = Object.freeze({
+    trailId: 'xunxian', title: '我的浚县赶会小卷', subtitle: '从城墙下，听见一只泥鸟',
+    fair: '浚县正月古庙会', disclosure: 'AI 概念插画 · 泥哨声音为艺术模拟', fileKey: 'xunxian', legacy: true
+  });
 
-  function mount({container, onReturn} = {}) {
+  function mount({container, onReturn, catalog = {}} = {}) {
     const doc = container?.ownerDocument;
     if (!doc?.body) throw new TypeError('FairSouvenir requires a document container');
     if (mounted.has(doc)) return mounted.get(doc);
@@ -38,7 +42,34 @@
     const body = get('.clay-souvenir-body');
     const fallbackBackdrop = doc.createElement('div'); fallbackBackdrop.className = 'clay-souvenir-fallback-backdrop'; fallbackBackdrop.hidden = true;
     doc.body.append(fallbackBackdrop);
-    let selected = [], generation = 0, imageUrl = null, fileName = '', previousFocus = null, fallback = false, modalActive = false;
+    let selection = Object.freeze({...legacy, pictures: []}), generation = 0, imageUrl = null, fileName = '', previousFocus = null, fallback = false, modalActive = false;
+
+    function pictureUrl(entry) {
+      if (entry?.kind === 'object') return entry.exploration?.detailImage;
+      if (entry?.kind === 'scene' && entry.caseId && Number.isFinite(+entry.sceneNumber)) return `assets/scenes/${entry.caseId}-${String(entry.sceneNumber).padStart(2, '0')}.webp`;
+      if (entry?.kind === 'world' && entry.caseId) return `assets/worlds/${entry.caseId}.webp`;
+      return null;
+    }
+
+    function selectPictures(trailId, stops) {
+      const visited = new Set(typeof stops === 'string' ? [] : Array.from(stops || []).filter(id => typeof id === 'string'));
+      if (!trailId) return Object.freeze({...legacy, pictures: Object.freeze(pictures.filter(stop => visited.has(stop.id)))});
+      const trail = (window.FairTrailsData || []).find(item => item.id === trailId);
+      if (!trail) return Object.freeze({trailId: String(trailId), title: '我的赶会小卷', subtitle: '', fair: '', disclosure: 'AI 概念插画', fileKey: 'fair', pictures: [], unavailable: true});
+      const introductions = [trail.introWorld, trail.introScene, trail.introObject];
+      const candidates = [trail.worldId, trail.sceneId, trail.objectId].map((id, index) => {
+        const entry = catalog[id];
+        return {id, image: pictureUrl(entry), title: entry?.label || '', caption: introductions[index] || ''};
+      });
+      candidates.push({id: `detail:${trail.id}`, image: trail.image, title: trail.title,
+        caption: (trail.spots || []).map(spot => spot.label).filter(Boolean).join(' · ')});
+      const selected = candidates.filter(stop => stop.id && stop.image && visited.has(stop.id)).map(stop => Object.freeze({...stop}));
+      return Object.freeze({
+        trailId: trail.id, title: `我的${trail.city}赶会小卷`, subtitle: trail.title, fair: trail.fair,
+        disclosure: 'AI 概念插画 · 细节与构图为艺术转译', fileKey: String(trail.id).replace(/[^a-zA-Z0-9_-]/g, '-') || 'fair',
+        pictures: Object.freeze(selected), legacy: false
+      });
+    }
 
     function retireUrl(url) {
       if (url) win.setTimeout(() => win.URL.revokeObjectURL(url), 30000);
@@ -125,9 +156,26 @@
       ctx.fillStyle = color; ctx.fillText(text, x, y);
     }
 
-    function compose(images, qr) {
+    function captionText(ctx, text, x, y, maxWidth) {
+      ctx.font = '22px "Noto Sans SC", "Microsoft YaHei", sans-serif'; ctx.fillStyle = '#52644d';
+      const chars = Array.from(String(text || '')), lines = []; let line = '';
+      for (const char of chars) {
+        if (line && ctx.measureText(line + char).width > maxWidth) { lines.push(line); line = char; }
+        else line += char;
+      }
+      if (line) lines.push(line);
+      if (lines.length > 2) {
+        lines.length = 2;
+        while (ctx.measureText(lines[1] + '…').width > maxWidth) lines[1] = lines[1].slice(0, -1);
+        lines[1] += '…';
+      }
+      lines.forEach((value, index) => ctx.fillText(value, x, y + index * 30));
+    }
+
+    function compose(images, qr, snapshot) {
+      const selected = snapshot.pictures;
       const width = 1200, margin = 80, imageWidth = 1040, imageHeight = 585;
-      const top = 236, block = 675, gap = 22, footer = 210;
+      const top = 236, block = snapshot.legacy ? 675 : 715, gap = 22, footer = 210;
       const height = top + selected.length * block + Math.max(0, selected.length - 1) * gap + footer;
       const canvas = doc.createElement('canvas'); canvas.width = width; canvas.height = height;
       const ctx = canvas.getContext('2d');
@@ -135,9 +183,9 @@
       ctx.fillStyle = '#f6f0e3'; ctx.fillRect(0, 0, width, height);
       ctx.textBaseline = 'top';
       ctx.fillStyle = '#9d452f'; ctx.fillRect(margin, 62, 48, 4);
-      fitText(ctx, '我的浚县赶会小卷', margin, 88, imageWidth, 27, '#8d6948');
-      fitText(ctx, '从城墙下，听见一只泥鸟', margin, 132, imageWidth, 53, '#294333', true);
-      fitText(ctx, `本次看过的 ${selected.length} 处画面 · 浚县正月古庙会`, margin, 200, imageWidth, 22, '#6d765e');
+      fitText(ctx, snapshot.title, margin, 88, imageWidth, 27, '#8d6948');
+      fitText(ctx, snapshot.subtitle, margin, 132, imageWidth, 53, '#294333', true);
+      fitText(ctx, `本次看过的 ${selected.length} 处画面 · ${snapshot.fair}`, margin, 200, imageWidth, 22, '#6d765e');
       selected.forEach((stop, index) => {
         const y = top + index * (block + gap), source = images[index];
         const scale = Math.min(imageWidth / source.naturalWidth, imageHeight / source.naturalHeight);
@@ -146,11 +194,12 @@
         // Place the existing illustration whole; never crop or redraw its content.
         ctx.drawImage(source, margin + (imageWidth - w) / 2, y + (imageHeight - h) / 2, w, h);
         fitText(ctx, `${String(index + 1).padStart(2, '0')}  ${stop.title}`, margin, y + imageHeight + 17, imageWidth, 27, '#914a34', true);
-        fitText(ctx, stop.caption, margin, y + imageHeight + 57, imageWidth, 22, '#52644d');
+        if (snapshot.legacy) fitText(ctx, stop.caption, margin, y + imageHeight + 57, imageWidth, 22, '#52644d');
+        else captionText(ctx, stop.caption, margin, y + imageHeight + 57, imageWidth);
       });
       const footerY = height - footer + 10;
       ctx.fillStyle = '#b9a47a80'; ctx.fillRect(margin, footerY, imageWidth, 1);
-      fitText(ctx, 'AI 概念插画 · 泥哨声音为艺术模拟', margin, footerY + 29, 820, 22, '#765e42');
+      fitText(ctx, snapshot.disclosure, margin, footerY + 29, 820, 22, '#765e42');
       fitText(ctx, '只收录这次看过的画面，让故事留在这张小卷里。', margin, footerY + 66, 820, 20, '#66715b');
       fitText(ctx, '赶一场中原庙会', margin, footerY + 112, 820, 25, '#294333', true);
       fitText(ctx, website.replace(/^https?:\/\//, ''), margin, footerY + 153, 820, 19, '#66715b');
@@ -163,29 +212,31 @@
     }
 
     async function generate() {
-      const ticket = ++generation;
+      const ticket = ++generation, snapshot = selection;
+      const current = () => ticket === generation && selection === snapshot && dialog.open;
+      delete dialog.dataset.width; delete dialog.dataset.height; delete save.dataset.filename;
       dialog.dataset.state = 'loading'; dialog.setAttribute('aria-busy', 'true');
       save.disabled = true; retry.hidden = true; preview.hidden = true; placeholder.hidden = false;
       placeholder.firstElementChild.textContent = '正在装裱这次相逢…';
       status.textContent = '正在准备小卷…';
       try {
         const [images, qr] = await Promise.all([
-          Promise.all(selected.map(stop => loadImage(stop.image))),
+          Promise.all(snapshot.pictures.map(stop => loadImage(stop.image))),
           loadImage('assets/review-qr.png').catch(() => null)
         ]);
-        if (ticket !== generation || !dialog.open) return false;
+        if (!current()) return false;
         if (doc.fonts?.ready) await Promise.race([doc.fonts.ready, new Promise(resolve => win.setTimeout(resolve, 1500))]);
-        if (ticket !== generation || !dialog.open) return false;
-        const canvas = compose(images, qr), blob = await toBlob(canvas);
-        if (ticket !== generation || !dialog.open) return false;
+        if (!current()) return false;
+        const canvas = compose(images, qr, snapshot), blob = await toBlob(canvas);
+        if (!current()) return false;
         const nextUrl = win.URL.createObjectURL(blob), previousUrl = imageUrl;
         preview.src = nextUrl;
-        preview.alt = `我的浚县赶会小卷：${selected.map(stop => stop.title).join('、')}。AI概念插画，泥哨声音为艺术模拟。`;
+        preview.alt = `${snapshot.title}：${snapshot.pictures.map(stop => stop.title).join('、')}。${snapshot.disclosure}。`;
         try { if (typeof preview.decode === 'function') await preview.decode(); }
         catch (error) { retireUrl(nextUrl); throw error; }
-        if (ticket !== generation || !dialog.open) { retireUrl(nextUrl); return false; }
+        if (!current()) { retireUrl(nextUrl); return false; }
         imageUrl = nextUrl; retireUrl(previousUrl);
-        fileName = `Hnmh-xunxian-scroll-${selected.length}.png`;
+        fileName = `Hnmh-${snapshot.fileKey}-scroll-${snapshot.pictures.length}.png`;
         dialog.dataset.width = String(canvas.width); dialog.dataset.height = String(canvas.height);
         save.dataset.filename = fileName; save.disabled = false;
         placeholder.hidden = true; preview.hidden = false;
@@ -194,7 +245,7 @@
         body.scrollTop = 0;
         return true;
       } catch {
-        if (ticket !== generation || !dialog.open) return false;
+        if (!current()) return false;
         dialog.dataset.state = 'error'; dialog.removeAttribute('aria-busy');
         placeholder.firstElementChild.textContent = '有一幅画暂未展开';
         status.textContent = '小卷暂未生成，请检查网络后重试。';
@@ -221,9 +272,12 @@
     });
 
     const api = Object.freeze({
-      open({stops} = {}) {
-        const visited = new Set(typeof stops === 'string' ? [] : Array.from(stops || []).filter(id => typeof id === 'string'));
-        selected = pictures.filter(stop => visited.has(stop.id));
+      open({trailId, stops} = {}) {
+        selection = selectPictures(trailId, stops);
+        const selected = selection.pictures;
+        dialog.dataset.trailId = selection.trailId;
+        get('#clay-souvenir-heading').textContent = selection.title;
+        get('#clay-souvenir-intro').textContent = selection.legacy ? '把这次看过的画面，留在一张小卷里。' : [selection.subtitle, selection.fair].filter(Boolean).join(' · ');
         dialog.dataset.stops = selected.map(stop => stop.id).join(','); dialog.dataset.count = String(selected.length);
         get('.clay-souvenir-record').textContent = selected.length ? `本次小卷收录：${selected.map(stop => stop.title).join(' → ')}` : '这次还没有可收进小卷的画面。';
         if (!dialog.open) {
@@ -239,7 +293,9 @@
         if (!selected.length) {
           generation++; dialog.dataset.state = 'empty'; dialog.removeAttribute('aria-busy');
           preview.hidden = true; placeholder.hidden = false; placeholder.firstElementChild.textContent = '先走近一处画面，再把它留在小卷里。';
-          save.disabled = true; retry.hidden = true; status.textContent = '小卷只记录这次实际看过的画面。';
+          save.disabled = true; retry.hidden = true;
+          delete dialog.dataset.width; delete dialog.dataset.height; delete save.dataset.filename;
+          status.textContent = selection.unavailable ? '这条路线的小卷尚未准备好，请返回会场继续逛。' : '小卷只记录这次实际看过的画面。';
           return Promise.resolve(false);
         }
         return generate();

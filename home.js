@@ -138,6 +138,8 @@
 
     function renderClues(world) {
       const clues = get('.home-selection-clues ul'); clues.replaceChildren();
+      const trail = (window.FairTrailsData || []).find(item => item.worldId === world?.id);
+      get('.home-selection-clues small').textContent = trail ? '入画识物 · ' + trail.title : world?.id === 'fair-hb-jx' ? '循声赶会 · 去找一只会叫的泥鸟' : '这一站，先看什么';
       for (const id of (world?.childrenIds || []).slice(0, 3)) {
         const scene = catalog[id]; if (!scene) continue;
         const item = document.createElement('li'); item.textContent = scene.label; clues.append(item);
