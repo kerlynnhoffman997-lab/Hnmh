@@ -26,14 +26,14 @@
   // Decorative placements within the province drawing, not surveyed landmark pins.
   // Symbols follow the fair stories already illustrated in this collection.
   const mapMotifs = [
-    {city:'郑州', symbol:'cypress', x:1332, y:432, width:68},
-    {city:'三门峡', symbol:'gate', x:744, y:580, width:118},
-    {city:'南阳', symbol:'stage', x:900, y:764, width:116},
-    {city:'鹤壁', symbol:'clay-bird', x:1400, y:220, width:68},
-    {city:'周口', symbol:'clay-dog', x:1488, y:612, width:90},
-    {city:'商丘', symbol:'qilin', x:1760, y:572, width:99},
-    {city:'信阳', symbol:'gourd', x:1408, y:1024, width:82},
-    {city:'濮阳', symbol:'table', x:1560, y:208, width:59}
+    {city:'郑州', symbol:'cypress', x:1328, y:432, width:75},
+    {city:'三门峡', symbol:'gate', x:740, y:576, width:124},
+    {city:'南阳', symbol:'stage', x:864, y:764, width:157},
+    {city:'鹤壁', symbol:'clay-bird', x:1392, y:220, width:78},
+    {city:'周口', symbol:'clay-dog', x:1464, y:592, width:122},
+    {city:'商丘', symbol:'qilin', x:1760, y:568, width:104},
+    {city:'信阳', symbol:'gourd', x:1388, y:1024, width:111},
+    {city:'濮阳', symbol:'table', x:1556, y:204, width:68}
   ];
   function addMapMotifs(svg) {
     const ns = 'http://www.w3.org/2000/svg';
