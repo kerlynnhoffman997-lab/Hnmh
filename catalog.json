@@ -12942,7 +12942,8 @@
     "childrenIds": [
       "scene-zk-th-01",
       "scene-zk-th-03",
-      "scene-zk-th-04"
+      "scene-zk-th-04",
+      "scene-zk-th-05"
     ],
     "label": "太昊陵庙会",
     "kind": "world",
@@ -15421,5 +15422,41 @@
         }
       ]
     }
+  },
+  "scene-zk-th-05": {
+    "id": "scene-zk-th-05",
+    "parentId": "fair-zk-th",
+    "childrenIds": [],
+    "label": "泥泥狗的黑底彩绘",
+    "kind": "scene",
+    "city": "周口",
+    "caseId": "zk-th",
+    "sceneNumber": 5,
+    "worldId": "fair-zk-th",
+    "category": "地方器物",
+    "description": "淮阳泥泥狗的黑色泥身上，白眼圈、红点与黄绿曲线一处处亮起来。竖耳、短腿和复合动物的轮廓排在木台上，大小错落。沿着一件件器物看过去，曲线绕着腹部转弯，彩点也随形体铺开，显出淮阳泥塑的模样。",
+    "supplementary": true,
+    "sourceYear": "2026年1月发布的器物资料图；拍摄日未知，非2026庙会现场",
+    "facts": [
+      "淮阳泥泥狗具有复合动物形象",
+      "黑底与白色眼圈、红黄绿点线构成鲜明彩绘"
+    ],
+    "sources": [
+      {
+        "title": "泥塑（淮阳泥泥狗）｜中国非物质文化遗产网",
+        "url": "https://www.ihchina.cn/project_details/14053.html",
+        "year": "2014名录扩展项目",
+        "type": "非遗项目档案",
+        "supports": "泥泥狗的造型、彩绘及民俗关联"
+      },
+      {
+        "title": "周口泥泥狗：远古图腾崇拜的印记｜周口文旅",
+        "url": "https://m.sohu.com/a/977136505_121106991/",
+        "year": "2026年1月",
+        "type": "地方文旅资料",
+        "supports": "泥泥狗实物资料照片；不是2026开幕实况"
+      }
+    ],
+    "artisticCompletion": "数量、木台、室内陈设、光照与单件纹样为艺术转译；非已确认店铺或销售现场。此图作为关联器物阅读，不在全景中虚构具体摊位位置。"
   }
 }

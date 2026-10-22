@@ -1,0 +1,59 @@
+/* A continuous picture-and-story page on portrait phones. */
+#picture-reading-page { display: none; }
+body.reading-page #picture-reading-page {
+  display: block; position: absolute; z-index: 1;
+  inset: var(--fair-toolbar-height) 0 var(--fair-navigation-height);
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain;
+  touch-action: pan-y; scrollbar-width: thin; scrollbar-color: #a59c7c55 transparent;
+  background: #f6f0e3; color: #273f32;
+}
+html body.adaptive-layout.immersive-active.reading-page #main-image-container {
+  position: relative !important; inset: auto !important; top: 0 !important; left: 0 !important;
+  width: 100% !important; height: var(--stage-h) !important; flex: none;
+  touch-action: pan-y !important; background: #263b30 !important;
+}
+body.reading-page #main-image { pointer-events: none; }
+body.reading-page #object-picture { object-fit: contain !important; object-position: center !important; }
+body.reading-page #picture-tools {
+  position: relative; inset: auto; display: flex; justify-content: flex-end; align-items: center;
+  gap: 8px; min-height: 64px; box-sizing: border-box; padding: 10px 20px;
+  border-bottom: 1px solid #a494702b; background: #f0e9d9; z-index: 2;
+}
+body.adaptive-layout.reading-page #picture-tools button {
+  background: transparent; color: #314c3b; border-color: #b9a77b70;
+  box-shadow: none; backdrop-filter: none; font-size: 12px;
+}
+body.adaptive-layout.reading-page #picture-tools button[aria-pressed="true"] { background: #fffaf0; color: #314c3b; }
+html body.adaptive-layout.reading-page #picture-caption,
+html body.adaptive-layout.reading-page.independent-detail #picture-caption {
+  position: relative; inset: auto; max-height: none; width: 100%; padding: 24px 22px 30px;
+  display: flex; align-items: flex-start; color: #263f32; background: #f6f0e3;
+  text-shadow: none; pointer-events: auto; touch-action: pan-y; box-sizing: border-box;
+}
+html body.adaptive-layout.reading-page #picture-caption > small {
+  display: block; color: #927448; font-size: 10px; letter-spacing: .1em;
+}
+html body.adaptive-layout.reading-page #picture-caption h1 {
+  color: #263f32; font-size: 27px; line-height: 1.45; margin: 9px 0 15px;
+}
+html body.adaptive-layout.reading-page #caption-reading {
+  max-width: none; overflow: visible; padding: 0; touch-action: pan-y; user-select: text;
+}
+html body.adaptive-layout.reading-page #caption-reading p,
+html body.adaptive-layout.reading-page #caption-reading .caption-summary {
+  display: block; max-width: none; overflow: visible; -webkit-line-clamp: unset;
+  font-size: 14px; line-height: 1.95; color: #445547; margin: 0;
+}
+body.reading-page .caption-section { border-top: 1px solid #a4947033; margin-top: 21px; padding-top: 18px; }
+body.reading-page .caption-section h2 { font-size: 16px; line-height: 1.6; color: #8f4d34; margin: 0 0 8px; }
+body.adaptive-layout.reading-page #caption-expand {
+  color: #5a6348; background: #e6e4d326; border-color: #b9a77b70; margin-top: 23px;
+}
+body.adaptive-layout.reading-page #caption-expand[hidden] { display: none; }
+body.reading-page #picture-swipe-hint { display: none !important; }
+body.reading-page #picture-tools button:focus-visible,
+body.reading-page #caption-expand:focus-visible,
+body.reading-page #caption-reading:focus-visible { outline-color: #9d4935; }
+@media (prefers-reduced-motion: reduce) {
+  body.reading-page #picture-reading-page { scroll-behavior: auto; }
+}

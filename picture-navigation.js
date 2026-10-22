@@ -49,7 +49,7 @@
       const ids = [...new Set([parent.id, ...(parent.childrenIds || [])
         .filter(id => catalog[id]?.kind === kind)])];
       const index = ids.indexOf(nodeId);
-      return index < 0 ? null : {world, ids, index};
+      return index < 0 ? null : {world, parent, ids, index, scope: entry.kind === 'object' ? 'object' : 'fair'};
     }
 
     function button(className, label, symbol) {
@@ -78,20 +78,29 @@
       const entry = catalog[currentNodeId];
       title.textContent = entry.label;
       title.title = entry.label;
-      count.textContent = `${currentIndex + 1} / ${currentSequence.length}`;
-      navigation.setAttribute('aria-label', `${data.world.label}的图片翻页`);
+      const positionLabel = entry.kind === 'world' ? '全景' : data.scope === 'object' ? '人物器物' : '会场场景';
+      const sequenceLabel = data.scope === 'object' ? `${data.parent.label}的人物器物图组（含所属活动画面）` : `${data.world.label}的会场图组（含全景）`;
+      count.textContent = `${positionLabel} ${currentIndex + 1} / ${currentSequence.length}`;
+      count.title = `${sequenceLabel}，当前第${currentIndex + 1}幅，共${currentSequence.length}幅`;
+      count.setAttribute('aria-label', count.title);
+      navigation.setAttribute('aria-label', `${sequenceLabel}，图片翻页`);
       navigation.setAttribute('aria-busy', String(pending));
       navigation.dataset.nodeId = currentNodeId;
       overview.disabled = pending || currentNodeId === worldId;
       previous.disabled = pending || currentIndex <= 0;
       next.disabled = pending || currentIndex >= currentSequence.length - 1;
+      for (const [control, label, id] of [[previous, '上一幅', currentSequence[currentIndex - 1]], [next, '下一幅', currentSequence[currentIndex + 1]]]) {
+        const description = id ? `${label}：${catalog[id].label}` : `${label}图片`;
+        control.title = description; control.setAttribute('aria-label', description);
+      }
+      dots.setAttribute('aria-label', sequenceLabel);
 
       const key = currentSequence.join('|');
       if (key !== sequenceKey) {
         sequenceKey = key;
         dots.replaceChildren();
         for (const [index, id] of currentSequence.entries()) {
-          const dot = button('picture-navigation-dot', `第${index + 1}幅，共${currentSequence.length}幅：${catalog[id].label}`, '');
+          const dot = button('picture-navigation-dot', `${sequenceLabel}，第${index + 1}幅，共${currentSequence.length}幅：${catalog[id].label}`, '');
           dot.dataset.nodeId = id;
           dot.addEventListener('click', () => { void navigate(id); });
           dots.append(dot);
@@ -153,27 +162,38 @@
       let start = null;
       const eligible = event => !pending && !frame.inert && !frame.hidden &&
         !hasDialog(hostDocument) && !hasDialog(doc) &&
-        (doc.body.classList.contains('picture-fit') || doc.body.classList.contains('picture-detail')) &&
+        (doc.body.classList.contains('picture-fit') || doc.body.classList.contains('picture-detail') || doc.body.classList.contains('reading-page')) &&
         !event.target.closest?.('#picture-caption,#picture-tools,.label,button,a,[role="button"],[id^="dot-"],[id^="line-"]');
       stage.addEventListener('touchstart',event => {
         start = null;
         if (event.touches.length !== 1 || !eligible(event)) return;
         const touch = event.touches[0];
-        start = {x:touch.clientX,y:touch.clientY,id:touch.identifier,node:currentNodeId,time:performance.now()};
+        start = {x:touch.clientX,y:touch.clientY,id:touch.identifier,node:currentNodeId,time:performance.now(),reading:doc.body.classList.contains('reading-page'),axis:null};
         event.stopImmediatePropagation();
-        if (event.cancelable) event.preventDefault();
+        if (!start.reading && event.cancelable) event.preventDefault();
       },{capture:true,passive:false});
       stage.addEventListener('touchmove',event => {
         if (!start) return;
         if (event.touches.length !== 1) { start = null; return; }
         event.stopImmediatePropagation();
+        if (start.reading) {
+          const touch = [...event.touches].find(item => item.identifier === start.id);
+          if (!touch) { start = null; return; }
+          const dx = Math.abs(touch.clientX - start.x), dy = Math.abs(touch.clientY - start.y);
+          if (!start.axis && Math.max(dx, dy) >= 8) {
+            if (dx > dy * 1.2) start.axis = 'horizontal';
+            else if (dy > dx * 1.2) start.axis = 'vertical';
+          }
+          if (start.axis === 'vertical') { start = null; return; }
+          if (start.axis !== 'horizontal') return;
+        }
         if (event.cancelable) event.preventDefault();
       },{capture:true,passive:false});
       stage.addEventListener('touchend',event => {
         if (!start) return;
         const gesture = start; start = null;
         event.stopImmediatePropagation();
-        if (event.cancelable) event.preventDefault();
+        if ((!gesture.reading || gesture.axis === 'horizontal') && event.cancelable) event.preventDefault();
         const touch = [...event.changedTouches].find(t => t.identifier === gesture.id);
         if (!touch || gesture.node !== currentNodeId || !eligible(event)) return;
         const dx = touch.clientX-gesture.x, dy = touch.clientY-gesture.y;

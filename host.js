@@ -23,6 +23,8 @@
   let home = null;
   let entering = false;
   let pictures = null;
+  let journey = null;
+  let activeFeature = null;
   let pictureRequest = 0;
   let lastPictureNode = null;
   const imageCache = new Map();
@@ -89,6 +91,7 @@
   function updateJourney(nodeId) {
     const doc = frame.contentDocument, entry = catalog?.[nodeId];
     if (!doc || !entry) return;
+    journey?.update(nodeId);
     const back = doc.getElementById('lightbox-back-arrow');
     if (back && !back.dataset.journeyBound) {
       back.dataset.journeyBound = 'true'; back.setAttribute('role','button'); back.tabIndex = 0;
@@ -113,8 +116,9 @@
     }
   }
 
-  async function enterFair(nodeId) {
+  async function enterFair(nodeId, feature = null) {
     if (entering || !isKnownNode(nodeId)) return;
+    activeFeature = feature?.worldId === nodeId ? feature : null;
     entering = true; home?.setEntering(true);
     try {
       await viewerReady;
@@ -200,6 +204,7 @@
     else url.searchParams.set('node', nodeId);
     if (url.href !== location.href) history[record?'pushState':'replaceState']({node: nodeId}, '', url);
     const label = catalog?.[nodeId]?.label;
+    if (nodeId === ROOT_ID || (activeFeature && findFair(catalog?.[nodeId] || {})?.id !== activeFeature.worldId)) activeFeature = null;
     document.title = label && nodeId !== ROOT_ID ? `${label} · 赶一场中原庙会` : '赶一场中原庙会';
     renderPicture(nodeId);
     pictures?.update(nodeId);
@@ -230,7 +235,7 @@
     if (!caption || !entry) return;
     if (caption.dataset.nodeId !== nodeId) {
       caption.dataset.nodeId = nodeId;
-      caption.querySelector('small').textContent = [entry.city,entry.kind === 'world' ? '走进庙会' : entry.kind === 'scene' ? '会场一隅' : '人与物的故事'].filter(Boolean).join(' · ');
+      caption.querySelector('small').textContent = [entry.city,entry.supplementary ? '地方手艺 · AI 概念插画' : entry.kind === 'world' ? '走进庙会' : entry.kind === 'scene' ? '会场一隅' : '人与物的故事'].filter(Boolean).join(' · ');
       caption.querySelector('h1').textContent = entry.label;
       const story = stories[nodeId];
       caption.querySelector('.caption-summary').textContent = story?.summary || '这一段故事暂未载入，请稍后再试。';
@@ -267,12 +272,49 @@
         detail.alt = entry.label + (entry.exploration?.independentScene ? ' · 独立 AI 概念场景' : ' · AI 概念插画局部');
       }
     }
+    renderFeatureRoute(entry, caption);
+    doc.defaultView.FairReading?.update({nodeId, kind:entry.kind});
     // The native viewer selects the parent before pinning a deep-linked object.
     // Open its story only after that final selection, so the pin does not reset it.
     if (storyRequestedFor === nodeId && doc.querySelector('.text-panel-title')?.textContent === entry.label) {
       storyRequestedFor = null;
       showStory();
     }
+  }
+
+  function renderFeatureRoute(entry, caption) {
+    const doc = caption.ownerDocument;
+    let route = doc.getElementById('picture-feature-route');
+    if (!route) {
+      route = doc.createElement('div'); route.id = 'picture-feature-route';
+      caption.querySelector('h1').after(route);
+      for (const type of ['pointerdown','mousedown','touchstart','click']) route.addEventListener(type,event => event.stopPropagation());
+    }
+    let target = null, label = '';
+    if (activeFeature && activeFeature.worldId === findFair(entry)?.id) {
+      if (entry.kind === 'world') target = activeFeature.sceneId;
+      else if (entry.id === activeFeature.sceneId && activeFeature.targetId !== entry.id) target = activeFeature.targetId;
+      label = '寻找 · ' + activeFeature.title;
+    }
+    // This independent object scene has no documented position in the panorama.
+    if (!target && ['fair-zk-th','scene-zk-th-04'].includes(entry.id)) {
+      target = 'scene-zk-th-05'; label = '庙会里的地方手艺';
+    }
+    if (route.dataset.target === (target || '') && route.dataset.context === label) return;
+    route.dataset.target = target || ''; route.dataset.context = label;
+    route.replaceChildren(); route.hidden = !target;
+    if (!target || !catalog[target]) return;
+    const title = doc.createElement('span'); title.textContent = label;
+    const button = doc.createElement('button'); button.type = 'button';
+    button.textContent = '看' + catalog[target].label + ' →';
+    button.addEventListener('click', async () => {
+      if (button.disabled) return;
+      button.disabled = true;
+      try { await switchPicture(target,{direction:'next'}); }
+      catch { /* switchPicture supplies the visible retry message. */ }
+      finally { if (button.isConnected) button.disabled = false; }
+    });
+    route.append(title,button);
   }
 
   function showStory() {
@@ -451,6 +493,10 @@
     detail.id = 'object-picture'; detail.hidden = true;
     frame.contentDocument.getElementById('main-image-container').append(detail);
     pictures = window.FairPictures.mount({frame,catalog,onNavigate:switchPicture,onPreload:preloadPicture});
+    journey = window.FairJourney?.mount({frame,catalog,onNavigate(nodeId) {
+      if (nodeId === ROOT_ID) navigateViewer(ROOT_ID);
+      else return switchPicture(nodeId,{direction:'previous'});
+    }});
     const doc = frame.contentDocument, labels = doc.getElementById('labels-container');
     const prepareLabels = () => {
       for (const label of labels.querySelectorAll('.label[id]')) {

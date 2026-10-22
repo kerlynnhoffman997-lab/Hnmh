@@ -123,6 +123,9 @@
     let selectedCity = byCity.get('郑州')?.length ? '郑州' : cities.find(city => byCity.get(city)?.length);
     let selectedWorld = null;
     let isEntering = false;
+    const featurePanel = window.FairMapFeature?.mount({container,catalog,onExplore(feature) {
+      if (!isEntering) onEnter(feature.worldId, feature);
+    }});
     let previewRequest = 0;
     let previewAnimation = null;
     let enterVisible = false, editorialVisible = false;
@@ -199,6 +202,7 @@
       if (isEntering && announce) return;
       const changed = selectedWorld?.id !== world?.id;
       selectedWorld = world;
+      featurePanel?.update(world);
       void updatePreview(world, changed, announce);
       enter.disabled = isEntering || !world;
       for (const button of [enter, previewOpen, dockEnter]) {
@@ -260,7 +264,8 @@
       mapCanvas.querySelectorAll('[data-city]').forEach(node => node.classList.toggle('is-hovered',node.dataset.city === city));
       peek.querySelector('strong').textContent = city;
       peek.querySelector('span').textContent = byCity.get(city).map(world => world.caseId === 'zz-hx' ? '航线里庙会' : world.label).join(' · ');
-      peek.querySelector('.home-peek-story').textContent = cityTopics[city];
+      const feature = (window.FairMapFeatures || []).find(item => item.city === city);
+      peek.querySelector('.home-peek-story').textContent = (feature ? feature.title + ' · ' : '') + cityTopics[city];
       const section = get('.home-map-section').getBoundingClientRect();
       const label = [...mapCanvas.querySelectorAll('.home-map-label')].find(node=>node.dataset.city === city) || target;
       const r = label.getBoundingClientRect();
@@ -294,7 +299,15 @@
     addEventListener('resize',hidePeek,{passive:true});
     mapCanvas.addEventListener('click', event => {
       const region = event.target.closest('[data-city]');
-      if (region) selectCity(region.dataset.city);
+      if (!region) return;
+      const motif = [...mapCanvas.querySelectorAll('.home-map-motif')].find(item => {
+        if (item.dataset.city !== region.dataset.city) return false;
+        const bounds = item.getBoundingClientRect();
+        return event.clientX >= bounds.left && event.clientX <= bounds.right && event.clientY >= bounds.top && event.clientY <= bounds.bottom;
+      });
+      const feature = motif && (window.FairMapFeatures || []).find(item => item.symbol === motif.dataset.motif);
+      selectCity(region.dataset.city, true, feature?.worldId);
+      if (feature) featurePanel?.focus();
     });
     mapCanvas.addEventListener('keydown', event => {
       const region = event.target.closest('[role="button"][data-city]');
@@ -383,6 +396,7 @@
         for (const button of cityButtons) button.disabled = isEntering;
         for (const button of container.querySelectorAll('[data-home-section]')) button.disabled = isEntering;
         editorial?.setEntering(isEntering);
+        featurePanel?.setEntering(isEntering);
         hidePeek(); updateDock();
         enter.setAttribute('aria-busy', String(isEntering));
         enter.querySelector('span').textContent = isEntering ? '正在走进…' : '走进这场庙会';
