@@ -1,0 +1,23 @@
+/* Small local motifs belong to the atlas; city names stay in front. */
+.home-map-folk, .home-map-folk * { pointer-events: none; }
+.home-map-motif {
+  opacity: .67;
+  filter: saturate(.66);
+  transition: opacity 240ms ease, filter 240ms ease;
+}
+.home-map-motif.is-selected, .home-map-motif.is-hovered {
+  opacity: .96;
+  filter: saturate(.9);
+}
+.home-map-peek .home-peek-story {
+  display: block; max-width: 19em; margin-top: 8px; padding-top: 7px;
+  border-top: 1px solid #a38b5933; color: #52654e;
+  font: 10px/1.8 'Noto Sans SC','Microsoft YaHei',sans-serif;
+}
+@media (max-width: 700px) {
+  .home-map-motif { opacity: .58; }
+  .home-map-motif.is-selected, .home-map-motif.is-hovered { opacity: .88; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-map-motif { transition: none; }
+}

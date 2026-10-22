@@ -23,6 +23,37 @@
     '济源': '红蓝棚下看戏赶集，尝一口土馍与鸡蛋不翻。'
   };
 
+  // Decorative placements within the province drawing, not surveyed landmark pins.
+  // Symbols follow the fair stories already illustrated in this collection.
+  const mapMotifs = [
+    {city:'郑州', symbol:'cypress', x:1332, y:432, width:68},
+    {city:'三门峡', symbol:'gate', x:744, y:580, width:118},
+    {city:'南阳', symbol:'stage', x:900, y:764, width:116},
+    {city:'鹤壁', symbol:'clay-bird', x:1400, y:220, width:68},
+    {city:'周口', symbol:'clay-dog', x:1488, y:612, width:90},
+    {city:'商丘', symbol:'qilin', x:1760, y:572, width:99},
+    {city:'信阳', symbol:'gourd', x:1408, y:1024, width:82},
+    {city:'濮阳', symbol:'table', x:1560, y:208, width:59}
+  ];
+  function addMapMotifs(svg) {
+    const ns = 'http://www.w3.org/2000/svg';
+    const layer = document.createElementNS(ns, 'g');
+    layer.setAttribute('class', 'home-map-folk');
+    layer.setAttribute('aria-hidden', 'true');
+    for (const motif of mapMotifs) {
+      const group = document.createElementNS(ns, 'g');
+      group.setAttribute('class', 'home-map-motif');
+      group.dataset.city = motif.city;
+      group.dataset.motif = motif.symbol;
+      const use = document.createElementNS(ns, 'use');
+      use.setAttribute('href', `assets/map-folk-motifs.svg#${motif.symbol}`);
+      use.setAttribute('x', motif.x); use.setAttribute('y', motif.y);
+      use.setAttribute('width', motif.width); use.setAttribute('height', motif.width * .8);
+      group.append(use); layer.append(group);
+    }
+    svg.insertBefore(layer, svg.querySelector('.home-map-names'));
+  }
+
   function mount({container, catalog, onEnter}) {
     if (!(container instanceof HTMLElement)) throw new TypeError('FairHome.mount requires a container element');
     if (typeof onEnter !== 'function') throw new TypeError('FairHome.mount requires onEnter');
@@ -52,7 +83,7 @@
           <section class="home-map-section" aria-label="选择庙会地区">
             <div class="home-map-heading"><span><i aria-hidden="true">壹</i>寻一座城</span><span class="home-map-instruction">此行 · <strong class="home-map-current"></strong></span></div>
             <div class="home-map-canvas" aria-busy="true"><p class="home-map-loading" role="status">正在展开河南地图…</p></div>
-            <div class="home-map-peek" hidden aria-hidden="true"><strong></strong><span></span></div>
+            <div class="home-map-peek" hidden aria-hidden="true"><strong></strong><span></span><small class="home-peek-story"></small></div>
             <div class="home-map-tools">
               <label class="home-city-picker">选择地区 <select aria-label="选择河南地区"></select><span aria-hidden="true">⌄</span></label>
               <div class="home-city-paging"><button class="home-city-previous" type="button" aria-label="上一座城">←</button><span class="home-city-position" aria-hidden="true"></span><button class="home-city-next" type="button" aria-label="下一座城">→</button></div>
@@ -216,6 +247,7 @@
       mapCanvas.querySelectorAll('[data-city]').forEach(node => node.classList.toggle('is-hovered',node.dataset.city === city));
       peek.querySelector('strong').textContent = city;
       peek.querySelector('span').textContent = byCity.get(city).map(world => world.caseId === 'zz-hx' ? '航线里庙会' : world.label).join(' · ');
+      peek.querySelector('.home-peek-story').textContent = cityTopics[city];
       const section = get('.home-map-section').getBoundingClientRect();
       const label = [...mapCanvas.querySelectorAll('.home-map-label')].find(node=>node.dataset.city === city) || target;
       const r = label.getBoundingClientRect();
@@ -278,6 +310,7 @@
         const documentSVG = new DOMParser().parseFromString(text, 'image/svg+xml');
         if (documentSVG.querySelector('parsererror') || documentSVG.documentElement.localName !== 'svg') throw new Error('invalid map');
         mapCanvas.replaceChildren(document.importNode(documentSVG.documentElement, true));
+        addMapMotifs(mapCanvas.querySelector('svg'));
         mapCanvas.setAttribute('aria-busy', 'false');
         selectCity(selectedCity, false);
         window.FairMotion?.reveal(mapCanvas, {duration:.6});
