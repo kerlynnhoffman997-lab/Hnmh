@@ -383,9 +383,9 @@
     catch { toast('这张图片暂未载入，请再试一次。'); throw new Error('Picture unavailable'); }
     if (request !== pictureRequest) return;
     const doc = frame.contentDocument, stage = doc.getElementById('main-image-container');
-    const regionalPicture = doc.getElementById('fair-trail-detail-image');
-    const current = regionalPicture && !regionalPicture.hidden && regionalPicture.complete && regionalPicture.naturalWidth
-      ? regionalPicture
+    const detailPicture = doc.getElementById('clay-closeup-image') || doc.getElementById('fair-trail-detail-image');
+    const current = detailPicture && !detailPicture.hidden && detailPicture.complete && detailPicture.naturalWidth
+      ? detailPicture
       : doc.body.classList.contains('picture-detail') ? doc.getElementById('object-picture') : doc.getElementById('main-image');
     let snapshot;
     if (!reduceMotion() && current?.complete && current.naturalWidth) {
@@ -558,7 +558,7 @@
     continuation = window.FairContinuation?.mount({frame,catalog,onNavigate:switchPicture,onMap() { navigateViewer(ROOT_ID); }});
     souvenir = window.FairSouvenir?.mount({container:document.body,catalog});
     clayTrail = window.FairClayTrail?.mount({frame,home:document.getElementById('province-home'),onNavigate:switchPicture,
-      onStart:() => enterFair('fair-hb-jx'),onSouvenir:stops => souvenir?.open({stops})});
+      onStart:() => enterFair('fair-hb-jx'),onRestore:rememberVisiblePicture,onSouvenir:stops => souvenir?.open({stops})});
     regionalTrails = window.FairTrails?.mount({frame,home:document.getElementById('province-home'),catalog,onNavigate:switchPicture,
       onStart:enterFair,onRestore:rememberVisiblePicture,onSouvenir:selection => souvenir?.open(selection)});
     const doc = frame.contentDocument, labels = doc.getElementById('labels-container');

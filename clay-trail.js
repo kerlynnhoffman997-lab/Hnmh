@@ -3,23 +3,18 @@
   const WORLD = 'fair-hb-jx', STALL = 'scene-hb-jx-04', BIRD = 'object-hb-jx-04-clay-bird';
   const route = [WORLD, STALL, BIRD];
   const mounted = new WeakMap();
-  const diagram = `<svg viewBox="0 0 440 148" role="img" aria-label="鸟形泥哨尾部小孔的位置示意，非实测结构图">
-    <path class="clay-shape" d="M86 83L57 59Q104 53 140 75Q167 42 234 57Q258 65 276 75Q276 34 308 30Q336 27 344 55L366 66L341 73Q340 107 308 116Q244 141 165 122Q116 118 86 83Z"/>
-    <path class="clay-wing" d="M163 84Q195 58 247 83Q227 117 180 110Z"/>
-    <circle cx="319" cy="48" r="4" fill="currentColor"/>
-    <path class="clay-flower" d="M204 83v24M192 95h24M195 86l18 18M195 104l18-18"/>
-    <circle class="clay-hole" cx="91" cy="69" r="4"/><circle class="clay-hole" cx="107" cy="75" r="3.5"/>
-    <path class="clay-leader" d="M99 62L115 24H198"/><text x="123" y="18">尾部小孔</text>
-    <g class="clay-air" fill="none"><path d="M27 79Q45 71 63 80"/><path d="M20 91Q41 83 65 90"/><path d="M29 103Q48 96 67 100"/></g>
-    <g class="clay-echo" fill="none"><path d="M380 59q13 12 0 24"/><path d="M394 51q22 20 0 40"/></g>
-  </svg>`;
+  const closeups = window.FairClayCloseupsData || [];
+  const closeupId = item => `closeup:${item.id}`;
 
-  function mount({frame, home, onNavigate, onStart, onSouvenir}) {
+  function mount({frame, home, onNavigate, onStart, onSouvenir, onRestore}) {
     if (mounted.has(frame)) return mounted.get(frame);
     const doc = frame.contentDocument;
     let nodeId = null, panel = null, marker = null, pending = false, holding = false;
     let stopAudio = null, stopTimer = null, clueTimer = null, pulseTarget = null;
     let physicalUntil = 0, pressedPointer = null;
+    let entering = false, activeIndex = -1, loadingIndex = -1, detailImage = null, detailState = 'closed';
+    let request = 0, loadTimer = null, viewTimer = null, cancelLoad = null;
+    const stage = doc.getElementById('main-image-container'), view = doc.defaultView;
     const visited = new Set();
     const create = (tag, className, text) => {
       const element = doc.createElement(tag); element.className = className;
@@ -59,22 +54,14 @@
       const settings = panel?.querySelector('.clay-sound-settings');
       if (settings) settings.textContent = soundReady() ? '声音设置' : '开启声音';
     }
-    function revealDiagram(open = true) {
-      const figure = panel?.querySelector('.clay-tail-diagram');
-      if (!figure) return;
-      figure.hidden = !open;
-      const control = panel.querySelector('.clay-show-tail');
-      control.setAttribute('aria-expanded',String(open));
-      control.textContent = open ? '收起吹孔示意 ↑' : '看看吹孔 ↓';
-    }
     function beginHold() {
-      if (holding || pending || frame.inert || nodeId !== BIRD || document.hidden) return;
+      if (holding || pending || entering || loadingIndex >= 0 || frame.inert || nodeId !== BIRD || document.hidden ||
+          (activeIndex >= 0 && !closeups[activeIndex]?.marker)) return;
       stop(); cleanClue(); holding = true;
-      revealDiagram();
       panel.classList.add('is-breathing'); marker?.classList.add('is-breathing');
       for (const b of doc.querySelectorAll('.clay-hold')) b.setAttribute('aria-pressed','true');
       stopAudio = window.FairAudio?.clayWhistle({pan:0}) || null;
-      status(soundReady() ? '轻轻一声“咕咕”，名字也从声音里来。松开即停。' : '当前静音，也可以看见尾部小孔与声纹示意。');
+      status(soundReady() ? '轻轻一声“咕咕”，名字也从声音里来。松开即停。' : '当前静音，可以选“看吹孔”，走近泥鸟尾部。');
       refreshSound(); stopTimer = setTimeout(stop,4000);
     }
     function bindHold(control) {
@@ -111,13 +98,15 @@
     }
     function placeMarker() {
       if (!marker || nodeId !== BIRD) return;
-      const stage = doc.getElementById('main-image-container'), image = doc.getElementById('object-picture');
+      const image = detailImage || doc.getElementById('object-picture');
+      const point = activeIndex >= 0 ? closeups[activeIndex]?.marker : {x: .5, y: .4};
+      marker.hidden = !point;
+      if (!point) return;
       const width = stage.clientWidth, height = stage.clientHeight;
       const ratio = image?.naturalWidth ? image.naturalWidth / image.naturalHeight : 16/9;
       const w = Math.min(width,height*ratio), h = w/ratio;
-      // The held red bird is visible at this point in the existing complete artwork.
-      marker.style.left = ((width-w)/2+w*.50)+'px';
-      marker.style.top = ((height-h)/2+h*.40)+'px';
+      marker.style.left = ((width-w)/2+w*point.x)+'px';
+      marker.style.top = ((height-h)/2+h*point.y)+'px';
     }
     function addMarker() {
       marker = button('clay-bird-touch clay-hold',''); marker.id = 'clay-bird-touch';
@@ -125,7 +114,69 @@
       marker.innerHTML = '<span class="clay-bird-ring" aria-hidden="true"></span><span>按住听</span>';
       bindHold(marker);
       for (const type of ['mousedown','touchstart','pointerdown','click']) marker.addEventListener(type,event => event.stopPropagation());
-      doc.getElementById('main-image-container').append(marker); placeMarker();
+      stage.append(marker); placeMarker();
+    }
+
+    function cancelRequest() {
+      request++; clearTimeout(loadTimer); cancelLoad?.(); cancelLoad = null; loadingIndex = -1;
+    }
+    function closeDetail(restore = false) {
+      stop(); cancelRequest(); clearTimeout(viewTimer);
+      detailImage?.remove(); detailImage = null; activeIndex = -1; detailState = 'closed';
+      doc.body.classList.remove('clay-closeup-active');
+      syncPending(); placeMarker();
+      if (restore) {
+        status('回到掌中的泥鸟，还可以继续看看另外两幅小场景。');
+        const restoredNode = nodeId;
+        void Promise.resolve().then(() => onRestore?.(restoredNode)).catch(() => {});
+      }
+    }
+    function recordVisibleCloseup() {
+      clearTimeout(viewTimer);
+      if (!detailImage?.isConnected || activeIndex < 0 || nodeId !== BIRD) return;
+      const r = detailImage.getBoundingClientRect(), style = view.getComputedStyle(detailImage);
+      if (!entering && !frame.inert && !document.hidden && !doc.hidden && home.hidden &&
+          !document.body.classList.contains('booting') && !doc.querySelector('.picture-transition') &&
+          !document.querySelector('dialog[open]') &&
+          !detailImage.hidden && detailImage.complete && detailImage.naturalWidth &&
+          style.display !== 'none' && style.visibility !== 'hidden' && +style.opacity > .9 &&
+          r.width > 0 && r.height > 0 && r.bottom > 0 && r.right > 0 && r.top < view.innerHeight && r.left < view.innerWidth) {
+        visited.add(closeupId(closeups[activeIndex])); syncPending(); return;
+      }
+      viewTimer = setTimeout(recordVisibleCloseup,180);
+    }
+    async function openDetail(index) {
+      const item = closeups[index];
+      if (!item || pending || entering || frame.inert || nodeId !== BIRD) return;
+      if (activeIndex === index && detailImage) { cancelRequest(); detailState = 'ready'; status(''); syncPending(); return; }
+      stop(); cancelRequest(); const ticket = request;
+      loadingIndex = index; detailState = 'loading';
+      status(`正在展开“${item.title}”…`); syncPending();
+      const image = create('img','clay-closeup-image'); image.alt = item.alt;
+      image.draggable = false; image.decoding = 'async';
+      try {
+        await new Promise((resolve,reject) => {
+          cancelLoad = () => reject(new Error('Cancelled'));
+          loadTimer = setTimeout(() => reject(new Error('Timeout')),15000);
+          image.onload = () => image.naturalWidth ? resolve() : reject(new Error('Empty image'));
+          image.onerror = () => reject(new Error('Image unavailable'));
+          image.src = new URL(item.image,document.baseURI).href;
+        });
+        if (image.decode) await image.decode();
+        if (ticket !== request || nodeId !== BIRD) return;
+        clearTimeout(loadTimer); cancelLoad = null; image.onload = null; image.onerror = null;
+        detailImage?.remove(); image.id = 'clay-closeup-image'; detailImage = image; stage.append(image);
+        activeIndex = index; loadingIndex = -1; detailState = 'ready';
+        doc.body.classList.add('clay-closeup-active'); status(''); syncPending(); placeMarker();
+        if (doc.body.classList.contains('reading-page')) {
+          doc.getElementById('picture-reading-page')?.scrollTo({top:0,behavior:view.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'});
+        }
+        view.requestAnimationFrame(recordVisibleCloseup);
+      } catch {
+        if (ticket !== request || nodeId !== BIRD) return;
+        clearTimeout(loadTimer); cancelLoad = null; loadingIndex = -1; detailState = 'error';
+        status(`“${item.title}”暂未载入，当前画面还在。点它的名字可以重试。`); syncPending();
+      }
     }
     function cue(targetId) {
       stop(); cleanClue();
@@ -146,11 +197,34 @@
     }
     function syncPending() {
       if (!panel) return;
-      panel.setAttribute('aria-busy',String(pending));
-      panel.querySelectorAll('button').forEach(b => { b.disabled = pending; });
+      const busy = pending || entering;
+      panel.setAttribute('aria-busy',String(busy || loadingIndex >= 0));
+      panel.dataset.detailState = detailState;
+      panel.dataset.closeupId = closeups[activeIndex]?.id || '';
+      panel.querySelectorAll('button').forEach(b => { b.disabled = busy; });
       const save = panel.querySelector('.clay-save');
-      if (save) save.disabled = pending || !visited.has(BIRD);
-      if (marker) marker.disabled = pending;
+      if (save) save.disabled = busy || loadingIndex >= 0 || !(visited.has(BIRD) || closeups.some(item => visited.has(closeupId(item))));
+      if (marker) marker.disabled = busy || loadingIndex >= 0;
+      const hold = panel.querySelector('.clay-hold-control');
+      if (hold) { hold.hidden = activeIndex >= 0 && !closeups[activeIndex]?.marker; hold.disabled = busy || loadingIndex >= 0; }
+      const back = panel.querySelector('.clay-back-picture');
+      if (back) { back.hidden = detailState === 'closed'; back.textContent = loadingIndex >= 0 ? '取消，回到原画' : '回到原画'; }
+      panel.querySelectorAll('.clay-closeup-tab').forEach((control,index) => {
+        control.disabled = busy || index === loadingIndex;
+        control.setAttribute('aria-pressed',String(index === activeIndex));
+      });
+      const previous = panel.querySelector('.clay-closeup-prev'), next = panel.querySelector('.clay-closeup-next');
+      if (previous) { previous.hidden = activeIndex < 0; previous.disabled = busy || loadingIndex >= 0 || activeIndex === 0; }
+      if (next) { next.hidden = activeIndex < 0; next.disabled = busy || loadingIndex >= 0 || activeIndex === closeups.length - 1; }
+      const story = panel.querySelector('.clay-closeup-story');
+      if (story) {
+        story.hidden = activeIndex < 0;
+        if (activeIndex >= 0) {
+          story.querySelector('h2').textContent = closeups[activeIndex].title;
+          story.querySelector('p').textContent = closeups[activeIndex].story;
+          panel.querySelector('.clay-closeup-count').textContent = `${String(activeIndex + 1).padStart(2,'0')} / ${String(closeups.length).padStart(2,'0')}`;
+        }
+      }
     }
     function render() {
       const parent = doc.getElementById('caption-reading');
@@ -164,7 +238,7 @@
       panel.setAttribute('aria-label','循声赶会：浚县泥咕咕');
       const kicker = create('div','clay-trail-kicker');
       kicker.append(create('span','','循声赶会 · 浚县'),create('span','clay-step',`${String(step+1).padStart(2,'0')} / 03`));
-      const copy = create('p','clay-trail-copy',step === 0 ? '城墙下的热闹里，藏着一声小小的“咕咕”。找找泥塑摊在哪里。' : step === 1 ? '走到桌边，看见一排鸟兽。摊主掌心里的小鸟，还藏着一个会响的秘密。' : '从一场热闹，走到掌心这只泥鸟。按住画中的泥鸟，听一声，再看看它的尾部。');
+      const copy = create('p','clay-trail-copy',step === 0 ? '城墙下的热闹里，藏着一声小小的“咕咕”。找找泥塑摊在哪里。' : step === 1 ? '走到桌边，看见一排鸟兽。摊主掌心里的小鸟，还藏着一个会响的秘密。' : '从一场热闹，走到掌心这只泥鸟。接着看素坯、上彩和尾部，读一只小鸟从泥土到“咕咕”的故事。');
       const actions = create('div','clay-trail-actions');
       if (step < 2) {
         const listen = button('clay-listen','听一声线索'); listen.addEventListener('click',() => cue(route[step+1]));
@@ -173,26 +247,46 @@
         actions.append(listen,next);
       } else {
         const hold = button('clay-hold clay-hold-control','按住听泥哨'); bindHold(hold);
-        const tail = button('clay-show-tail','看看吹孔 ↓'); tail.setAttribute('aria-expanded','false'); tail.setAttribute('aria-controls','clay-tail-diagram');
-        tail.addEventListener('click',() => revealDiagram(tail.getAttribute('aria-expanded') !== 'true'));
+        const back = button('clay-back-picture','回到原画'); back.hidden = true;
+        back.addEventListener('click',() => { closeDetail(true); panel?.querySelector('.clay-closeup-tab')?.focus({preventScroll:true}); });
         const save = button('clay-save','留一张赶会小卷 ↗');
         save.addEventListener('click',() => {
           stop(); if (!save.disabled) void Promise.resolve(onSouvenir([...visited])).catch(() => status('小卷暂未展开，可以再试一次。'));
         });
-        actions.append(hold,tail,save);
+        actions.append(hold,back,save);
       }
       const state = create('p','clay-trail-status',''); state.setAttribute('role','status'); state.setAttribute('aria-live','polite');
       const meta = create('div','clay-trail-meta');
       const settings = button('clay-sound-settings','开启声音'); settings.addEventListener('click',() => { stop(); window.FairAudio?.openSettings(settings); });
       meta.append(settings,create('small','','声音为艺术模拟 · 静音也可探索'));
-      panel.append(kicker,copy,actions,state);
+      panel.append(kicker,copy);
       if (step === 2) {
-        const figure = create('figure','clay-tail-diagram'); figure.id = 'clay-tail-diagram'; figure.hidden = true;
-        figure.innerHTML = diagram;
-        const explanation = create('figcaption','','泥咕咕尾部留有小孔，吹响时发出“咕咕”声，名字也由此而来。');
-        explanation.append(create('small','','鸟形位置示意，非实测结构图。'));
-        figure.append(explanation); panel.append(figure); addMarker();
+        const tabs = create('div','clay-closeup-tabs'); tabs.setAttribute('role','group'); tabs.setAttribute('aria-label','泥咕咕的三个小场景');
+        closeups.forEach((item,index) => {
+          const tab = button('clay-closeup-tab',`${String(index+1).padStart(2,'0')} ${item.label}`);
+          tab.dataset.closeupIndex = String(index); tab.setAttribute('aria-controls','clay-closeup-story');
+          tab.addEventListener('click',() => { void openDetail(index); });
+          tab.addEventListener('keydown',event => {
+            const direction = ['ArrowRight','ArrowDown'].includes(event.key) ? 1 : ['ArrowLeft','ArrowUp'].includes(event.key) ? -1 : 0;
+            if (!direction) return;
+            event.preventDefault(); event.stopPropagation();
+            const nextIndex = (index + direction + closeups.length) % closeups.length;
+            tabs.children[nextIndex]?.focus({preventScroll:true}); void openDetail(nextIndex);
+          });
+          tabs.append(tab);
+        });
+        const story = create('section','clay-closeup-story'); story.id = 'clay-closeup-story'; story.hidden = true;
+        story.setAttribute('aria-live','polite'); story.setAttribute('aria-atomic','true');
+        story.append(create('h2',''),create('p',''));
+        const paging = create('div','clay-closeup-paging');
+        const previous = button('clay-closeup-prev','← 上一幅'), next = button('clay-closeup-next','下一幅 →');
+        previous.addEventListener('click',() => { void openDetail(activeIndex-1); });
+        next.addEventListener('click',() => { void openDetail(activeIndex+1); });
+        paging.append(previous,create('span','clay-closeup-count'),next);
+        panel.append(tabs,story,paging); addMarker();
       }
+      panel.append(actions,state);
+      if (step === 2) panel.append(create('small','clay-closeup-meta','AI 概念插画 · 手势、构图与陈设为艺术补全'));
       panel.append(meta); parent.prepend(panel);
       for (const type of ['pointerdown','mousedown','touchstart','click']) panel.addEventListener(type,event => event.stopPropagation());
       refreshSound(); syncPending();
@@ -204,14 +298,14 @@
       view.addEventListener('pointerup',stop); view.addEventListener('pointercancel',stop);
       view.addEventListener('blur',stop); view.addEventListener('pagehide',stop);
     }
-    document.addEventListener('visibilitychange',() => { if (document.hidden) { stop(); cleanClue(); } });
+    document.addEventListener('visibilitychange',() => { if (document.hidden) { stop(); cleanClue(); } else recordVisibleCloseup(); });
     document.getElementById('fair-sound-dialog')?.addEventListener('close',refreshSound);
     const api = Object.freeze({
-      update(next) { if (next !== nodeId) { stop(); cleanClue(); nodeId = next; } render(); },
-      record(id) { if (route.includes(id)) { visited.add(id); syncPending(); } },
-      begin() { stop(); cleanClue(); visited.clear(); syncPending(); },
-      setEntering(value) { start.disabled = Boolean(value); },
-      readState() { return {nodeId,holding,visited:[...visited]}; }
+      update(next) { if (next !== nodeId) { stop(); cleanClue(); closeDetail(); nodeId = next; } render(); },
+      record(id) { if (route.includes(id) && id === nodeId && !(id === BIRD && detailImage)) { visited.add(id); syncPending(); } },
+      begin() { stop(); cleanClue(); closeDetail(); visited.clear(); syncPending(); },
+      setEntering(value) { entering = Boolean(value); start.disabled = entering; if (entering) stop(); syncPending(); },
+      readState() { return {nodeId,holding,visited:[...visited],activeIndex,loadingIndex,detailState}; }
     });
     mounted.set(frame,api); return api;
   }

@@ -53,7 +53,11 @@
 
     function selectPictures(trailId, stops) {
       const visited = new Set(typeof stops === 'string' ? [] : Array.from(stops || []).filter(id => typeof id === 'string'));
-      if (!trailId) return Object.freeze({...legacy, pictures: Object.freeze(pictures.filter(stop => visited.has(stop.id)))});
+      if (!trailId) {
+        const extras = (window.FairClayCloseupsData || []).map(item => ({id: `closeup:${item.id}`, image: item.image, title: item.title, caption: item.caption}));
+        const selected = [...pictures,...extras].filter(stop => visited.has(stop.id));
+        return Object.freeze({...legacy, legacy: !selected.some(stop => stop.id.startsWith('closeup:')), pictures: Object.freeze(selected)});
+      }
       const trail = (window.FairTrailsData || []).find(item => item.id === trailId);
       if (!trail) return Object.freeze({trailId: String(trailId), title: '我的赶会小卷', subtitle: '', fair: '', disclosure: 'AI 概念插画', fileKey: 'fair', pictures: [], unavailable: true});
       const introductions = [trail.introWorld, trail.introScene, trail.introObject];
