@@ -23,6 +23,15 @@
     '济源': '红蓝棚下看戏赶集，尝一口土馍与鸡蛋不翻。'
   };
 
+  // Themes point to scenes already present in the collection. They describe
+  // this illustrated selection, rather than an exhaustive census of local fairs.
+  const mapThemes = [
+    {id:'all', label:'全部', scenes:[]},
+    {id:'social', label:'看社火', scenes:['scene-ay-dk-03','scene-hb-jx-03','scene-smx-hg-03','scene-ny-sd-01','scene-sq-hst-03','scene-xy-pgs-03']},
+    {id:'craft', label:'识手艺', scenes:['scene-zz-zy-04','scene-ly-gl-04','scene-pds-tw-04','scene-hb-jx-04','scene-xx-bg-04','scene-sq-hst-04','scene-xy-pgs-04','scene-zk-th-05']},
+    {id:'market', label:'逛集市', scenes:['scene-zz-zy-04','scene-ly-gl-02','scene-pds-tw-04','scene-ay-dk-04','scene-hb-jx-04','scene-xx-bg-04','scene-jz-ysc-04','scene-lh-hsj-04','scene-smx-hg-04','scene-ny-sd-04','scene-xy-pgs-04','scene-zk-th-04','scene-jy-sl-04']}
+  ];
+
   // Decorative placements within the province drawing, not surveyed landmark pins.
   // Symbols follow the fair stories already illustrated in this collection.
   const mapMotifs = [
@@ -61,6 +70,8 @@
     const worlds = Object.values(catalog || {}).filter(node => node.kind === 'world');
     const byCity = new Map(cities.map(city => [city, worlds.filter(node => node.city === city)
       .sort((a, b) => a.caseId === 'zz-zy' ? -1 : b.caseId === 'zz-zy' ? 1 : a.label.localeCompare(b.label, 'zh-CN'))]));
+    const themes = mapThemes.map(theme => ({...theme, entries:theme.scenes.map(id => catalog[id])
+      .filter(scene => scene?.kind === 'scene' && catalog[scene.parentId]?.kind === 'world')}));
     container.classList.add('fair-home','refined-home');
     container.setAttribute('aria-label', '河南庙会地图首页');
     container.innerHTML = `
@@ -83,13 +94,15 @@
           </header>
           <section class="home-map-section" aria-label="选择庙会地区">
             <div class="home-map-heading"><span><i aria-hidden="true">壹</i>寻一座城</span><span class="home-map-instruction">此行 · <strong class="home-map-current"></strong></span></div>
+            <div class="home-map-themes" role="group" aria-label="按庙会主题点亮地图"></div>
+            <p class="home-map-theme-status" role="status" aria-live="polite" aria-atomic="true"></p>
             <div class="home-map-canvas" aria-busy="true"><p class="home-map-loading" role="status">正在展开河南地图…</p></div>
             <div class="home-map-peek" hidden aria-hidden="true"><strong></strong><span></span><small class="home-peek-story"></small></div>
-            <div class="home-map-tools">
+            <details class="home-map-more"><summary>更多选城方式 <span aria-hidden="true">＋</span></summary><div class="home-map-tools">
               <label class="home-city-picker">选择地区 <select aria-label="选择河南地区"></select><span aria-hidden="true">⌄</span></label>
               <div class="home-city-paging"><button class="home-city-previous" type="button" aria-label="上一座城">←</button><span class="home-city-position" aria-hidden="true"></span><button class="home-city-next" type="button" aria-label="下一座城">→</button></div>
-            </div>
-            <div class="home-map-bottom"><p class="home-map-key"><i aria-hidden="true"></i><span>点选一方水土，开启一场相逢</span></p><button class="home-surprise" type="button">随心选一场 <span aria-hidden="true">↗</span></button></div>
+            </div><button class="home-surprise" type="button">随心选一场 <span aria-hidden="true">↗</span></button></details>
+            <div class="home-map-bottom"><p class="home-map-key"><i aria-hidden="true"></i><span>点选地图，看看这座城的庙会</span></p></div>
           </section>
           <section class="home-selection" aria-label="所选地区的庙会">
             <div class="home-selection-heading"><p class="home-selection-kicker">贰 · 走进 <span class="home-selected-city"></span><span class="home-fair-count"></span></p>
@@ -124,6 +137,7 @@
     let selectedCity = byCity.get('郑州')?.length ? '郑州' : cities.find(city => byCity.get(city)?.length);
     let selectedWorld = null;
     let isEntering = false;
+    let activeTheme = themes[0];
     const featurePanel = window.FairMapFeature?.mount({container,catalog,onExplore(feature) {
       if (!isEntering) onEnter(feature.worldId, feature);
     }});
@@ -131,6 +145,45 @@
     let previewAnimation = null;
     let enterVisible = false, editorialVisible = false;
     let peekCity = null;
+    const themeButtons = themes.map(theme => {
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'home-map-theme'; button.dataset.theme = theme.id;
+      button.textContent = theme.label; button.setAttribute('aria-pressed', String(theme.id === activeTheme.id));
+      button.addEventListener('click', () => {
+        if (isEntering || activeTheme === theme) return;
+        activeTheme = theme; updateTheme(); hidePeek();
+        if (theme.id !== 'all' && !matchesTheme(selectedWorld)) {
+          const near = theme.entries.find(scene => catalog[scene.parentId].city === selectedCity) || theme.entries[0];
+          if (near) selectCity(catalog[near.parentId].city, true, near.parentId);
+        } else renderClues(selectedWorld);
+      });
+      get('.home-map-themes').append(button); return button;
+    });
+    get('.home-map-themes').addEventListener('keydown', event => {
+      if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
+      const index = themeButtons.indexOf(event.target); if (index < 0) return;
+      event.preventDefault();
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? themeButtons.length - 1 :
+        (index + (event.key === 'ArrowRight' ? 1 : -1) + themeButtons.length) % themeButtons.length;
+      themeButtons[next].focus();
+    });
+    function matchesTheme(world) {
+      return activeTheme.id === 'all' || activeTheme.entries.some(scene => scene.parentId === world?.id);
+    }
+    function updateTheme() {
+      container.dataset.mapTheme = activeTheme.id;
+      for (const button of themeButtons) button.setAttribute('aria-pressed', String(button.dataset.theme === activeTheme.id));
+      const matches = worlds.filter(matchesTheme);
+      const matchingCities = new Set(matches.map(world => world.city));
+      for (const item of mapCanvas.querySelectorAll('[data-city]')) {
+        const match = matchingCities.has(item.dataset.city);
+        item.classList.toggle('is-theme-match', activeTheme.id !== 'all' && match);
+        item.classList.toggle('is-theme-muted', activeTheme.id !== 'all' && !match);
+      }
+      get('.home-map-theme-status').textContent = activeTheme.id === 'all'
+        ? `${byCity.size} 个地区 · ${worlds.length} 场庙会，选一个地方出发`
+        : `${activeTheme.label} · 点亮 ${matchingCities.size} 个地区、${matches.length} 场庙会；其他地区仍可选择`;
+    }
     const compact = matchMedia('(max-width:700px) and (orientation:portrait)');
     function updateDock() { dock.hidden = !compact.matches || enterVisible || editorialVisible || !selectedWorld || isEntering; }
     compact.addEventListener('change', updateDock);
@@ -139,8 +192,10 @@
     function renderClues(world) {
       const clues = get('.home-selection-clues ul'); clues.replaceChildren();
       const trail = (window.FairTrailsData || []).find(item => item.worldId === world?.id);
-      get('.home-selection-clues small').textContent = trail ? '入画识物 · ' + trail.title : world?.id === 'fair-hb-jx' ? '循声赶会 · 去找一只会叫的泥鸟' : '这一站，先看什么';
-      for (const id of (world?.childrenIds || []).slice(0, 3)) {
+      const themed = activeTheme.id !== 'all' ? activeTheme.entries.filter(scene => scene.parentId === world?.id) : [];
+      get('.home-selection-clues small').textContent = themed.length ? `${activeTheme.label} · 在这场庙会遇见` : trail ? '入画识物 · ' + trail.title : world?.id === 'fair-hb-jx' ? '循声赶会 · 去找一只会叫的泥鸟' : '这一站，先看什么';
+      const ids = themed.length ? themed.map(scene => scene.id) : (world?.childrenIds || []).slice(0, 3);
+      for (const id of ids) {
         const scene = catalog[id]; if (!scene) continue;
         const item = document.createElement('li'); item.textContent = scene.label; clues.append(item);
       }
@@ -212,6 +267,7 @@
 
     function selectFair(world, announce = true) {
       if (isEntering && announce) return;
+      if (!matchesTheme(world)) { activeTheme = themes[0]; updateTheme(); }
       const changed = selectedWorld?.id !== world?.id;
       selectedWorld = world;
       featurePanel?.update(world);
@@ -225,6 +281,8 @@
       get('.home-dock-city').textContent = selectedCity;
       get('.home-dock-title').textContent = world?.label || '';
       updateDock();
+      if (changed && announce) window.FairMotion?.animate(get('.home-selection'),
+        {boxShadow:['0 0 0 2px #b38c5380','0 0 0 0px #b38c5300']}, {duration:.65});
       for (const button of options.querySelectorAll('button')) button.setAttribute('aria-pressed', String(button.dataset.world === world?.id));
       if (announce) status.textContent = world ? `已选择${selectedCity}，${world.label}。点击“走进这场庙会”开始探索。` : '暂未载入庙会';
     }
@@ -233,7 +291,8 @@
       const choices = byCity.get(city);
       if (!choices?.length || (isEntering && announce)) return;
       if (announce && city === selectedCity && selectedWorld && !preferredWorldId) return;
-      const previousChoice = preferredWorldId || (city === selectedCity ? selectedWorld?.id : null);
+      if (activeTheme.id !== 'all' && !choices.some(matchesTheme)) { activeTheme = themes[0]; updateTheme(); }
+      const previousChoice = preferredWorldId || (city === selectedCity && matchesTheme(selectedWorld) ? selectedWorld?.id : null);
       selectedCity = city;
       picker.value = city;
       get('.home-selected-city').textContent = city;
@@ -262,7 +321,7 @@
         const region = [...mapCanvas.querySelectorAll('.home-region')].find(item => item.dataset.city === city);
         if (region) window.FairMotion?.animate(region, {opacity:[.55,1]}, {duration:.4});
       }
-      selectFair(choices.find(world => world.id === previousChoice) || choices[0], announce);
+      selectFair(choices.find(world => world.id === previousChoice) || choices.find(matchesTheme) || choices[0], announce);
       hidePeek();
     }
 
@@ -299,7 +358,7 @@
     }
     get('.home-surprise').addEventListener('click',() => {
       if (isEntering) return;
-      const choices = worlds.filter(world=>world.id !== selectedWorld?.id);
+      const choices = worlds.filter(world=>world.id !== selectedWorld?.id && matchesTheme(world));
       const world = choices[Math.floor(Math.random()*choices.length)];
       if (world) selectCity(world.city,true,world.id);
     });
@@ -340,7 +399,7 @@
         regions[next]?.focus({preventScroll:true});
       }
     });
-    selectCity(selectedCity, false);
+    updateTheme(); selectCity(selectedCity, false);
     for (const [index, selector] of ['.home-intro','.home-selection','.home-map-heading'].entries()) {
       window.FairMotion?.reveal(get(selector), {duration:.55, delay:index*.06});
     }
@@ -353,6 +412,7 @@
         mapCanvas.replaceChildren(document.importNode(documentSVG.documentElement, true));
         addMapMotifs(mapCanvas.querySelector('svg'));
         mapCanvas.setAttribute('aria-busy', 'false');
+        updateTheme();
         selectCity(selectedCity, false);
         window.FairMotion?.reveal(mapCanvas, {duration:.6});
         for (const [index,region] of [...mapCanvas.querySelectorAll('.home-region')].entries()) {
@@ -361,7 +421,9 @@
       })
       .catch(() => {
         mapCanvas.setAttribute('aria-busy', 'false');
-        get('.home-map-loading').textContent = '地图暂未载入，请用下方地区选择继续探索。';
+        const loading = get('.home-map-loading');
+        if (loading) loading.textContent = '地图暂未载入，请用下方地区选择继续探索。';
+        get('.home-map-more').open = true;
       });
 
     function scrollHomeSection(section) {
@@ -369,6 +431,7 @@
       if (!target) return;
       target.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'instant' : 'smooth', block: 'start'});
       const focus = section === 'editorial' ? get('#home-editorial-title') : [...mapCanvas.querySelectorAll('.home-region')].find(region => region.dataset.city === selectedCity) || picker;
+      if (focus === picker) get('.home-map-more').open = true;
       focus?.focus({preventScroll:true});
     }
     const editorial = window.FairHomeEditorial?.mount({container, catalog,
@@ -413,6 +476,7 @@
         for (const button of [enter,previewOpen,dockEnter]) button.disabled = isEntering || !selectedWorld;
         previewOpen.disabled = isEntering || !selectedWorld || get('.home-preview').getAttribute('aria-busy') === 'true' || get('.home-preview-image').hidden;
         for (const button of cityButtons) button.disabled = isEntering;
+        for (const button of themeButtons) button.disabled = isEntering;
         for (const button of container.querySelectorAll('[data-home-section]')) button.disabled = isEntering;
         editorial?.setEntering(isEntering);
         featurePanel?.setEntering(isEntering);

@@ -1,0 +1,13 @@
+/* Context previews are tied to actual image hotspots. Touch keeps direct entry. */
+#scene-preview{position:fixed;z-index:1250;width:258px;box-sizing:border-box;overflow:hidden;border:1px solid #d7c49c;border-radius:10px;background:#fff9ed;color:#2c4337;box-shadow:0 12px 36px #142b3440;pointer-events:auto;font-family:'Noto Sans SC','Microsoft YaHei',sans-serif;text-shadow:none}
+#scene-preview[hidden],#scene-preview img[hidden]{display:none!important}
+#scene-preview img{display:block;width:100%;height:130px;object-fit:cover}
+#scene-preview>div{padding:13px 16px 14px}
+#scene-preview small{display:block;color:#986b40;font-size:10px;letter-spacing:.08em;line-height:1.7}
+#scene-preview strong{display:block;margin:5px 0;font:600 19px/1.5 'Noto Serif SC',serif}
+#scene-preview p{margin:5px 0 9px;color:#5b6657;font-size:12px;line-height:1.8}
+#scene-preview span{font-size:11px;color:#a3452e}
+html body.adaptive-layout .label.scene-visited::after{content:'✓';display:inline-block;margin-left:7px;color:#8e472d;font:700 11px/1 sans-serif}
+html body.adaptive-layout .label[aria-busy=true]{cursor:progress!important;outline:2px solid #edce8f!important;outline-offset:3px}
+@media(max-height:500px){#scene-preview{width:220px}#scene-preview img{height:82px}#scene-preview p{display:none}#scene-preview>div{padding:8px 12px}#scene-preview strong{font-size:16px}}
+@media(prefers-reduced-motion:reduce){#scene-preview{animation:none!important;transition:none!important}}

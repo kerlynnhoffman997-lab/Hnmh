@@ -29,6 +29,7 @@
   let clayTrail = null;
   let regionalTrails = null;
   let souvenir = null;
+  let sceneExplore = null;
   let visitRequest = 0;
   let activeFeature = null;
   let pictureRequest = 0;
@@ -114,7 +115,10 @@
         if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopImmediatePropagation(); goUp(); }
       }, true);
       doc.addEventListener('keydown', event => {
-        if (event.key === 'Escape' && !hostDialogs.some(d => d.open)) { event.preventDefault(); event.stopImmediatePropagation(); goUp(); }
+        if (event.key === 'Escape' && !hostDialogs.some(d => d.open)) {
+          event.preventDefault(); event.stopImmediatePropagation();
+          if (!sceneExplore?.dismissPreview()) goUp();
+        }
       }, true);
       const location = doc.createElement('div'); location.id = 'journey-location';
       location.append(doc.createElement('small'),doc.createElement('strong'));
@@ -270,11 +274,12 @@
     const request = ++visitRequest;
     if (!visit || !pictureUrl(catalog?.[nodeId])) return;
     void waitForPicture(nodeId,{visible:true,timeout:25000}).then(shown => {
-      if (shown && request === visitRequest) { visit.record(nodeId); clayTrail?.record(nodeId); regionalTrails?.record(nodeId); }
+      if (shown && request === visitRequest) { visit.record(nodeId); clayTrail?.record(nodeId); regionalTrails?.record(nodeId); sceneExplore?.record(nodeId); }
     }).catch(() => {});
   }
 
   function renderPicture(nodeId) {
+    sceneExplore?.update(nodeId);
     const doc = frame.contentDocument, entry = catalog?.[nodeId];
     const caption = doc?.getElementById('picture-caption');
     if (!caption || !entry) return;
@@ -375,9 +380,14 @@
     if (!caption.classList.contains('expanded')) doc.getElementById('caption-expand').click();
   }
 
-  async function switchPicture(nodeId,{direction}={}) {
+  async function switchPicture(nodeId,{direction,origin}={}) {
     const entry = catalog?.[nodeId], src = pictureUrl(entry);
     if (!src) return;
+    const previousEntry = catalog?.[currentNode];
+    const depth = {root:0,world:1,scene:2,object:3};
+    const change = (depth[entry.kind] || 0) - (depth[previousEntry?.kind] || 0);
+    const motion = change > 0 ? 'approach' : change < 0 ? 'return' : 'beside';
+    sceneExplore?.close();
     const request = ++pictureRequest;
     try { await preloadPicture(nodeId); }
     catch { toast('这张图片暂未载入，请再试一次。'); throw new Error('Picture unavailable'); }
@@ -392,9 +402,11 @@
       const r = current.getBoundingClientRect(), s = stage.getBoundingClientRect();
       snapshot = doc.createElement('img'); snapshot.src = current.src; snapshot.alt = '';
       snapshot.dataset.target = nodeId;
+      snapshot.dataset.motion = motion;
       snapshot.className = 'picture-transition';
       const imageStyle = frame.contentWindow.getComputedStyle(current);
       Object.assign(snapshot.style,{left:(r.left-s.left)+'px',top:(r.top-s.top)+'px',width:r.width+'px',height:r.height+'px',objectFit:imageStyle.objectFit,objectPosition:imageStyle.objectPosition});
+      if (origin) snapshot.style.transformOrigin = `${origin.x*100}% ${origin.y*100}%`;
       stage.append(snapshot);
     }
     try {
@@ -411,8 +423,9 @@
         ready();
       });
       if (snapshot && currentNode === nodeId) {
-        const x = direction === 'previous' ? 36 : direction === 'next' ? -36 : 0;
-        await window.FairMotion.animate(snapshot,{opacity:[1,0],transform:['translateX(0) scale(1)',`translateX(${x}px) scale(${x ? 1 : 1.025})`]},{duration:.4}).finished;
+        const x = motion === 'beside' ? direction === 'previous' ? 36 : direction === 'next' ? -36 : 0 : 0;
+        const scale = motion === 'approach' ? 1.1 : motion === 'return' ? .94 : 1;
+        await window.FairMotion.animate(snapshot,{opacity:[1,0],transform:['translateX(0) scale(1)',`translateX(${x}px) scale(${scale})`]},{duration:motion === 'beside' ? .32 : .44}).finished;
       }
     } finally { snapshot?.remove(); }
   }
@@ -561,13 +574,14 @@
       onStart:() => enterFair('fair-hb-jx'),onRestore:rememberVisiblePicture,onSouvenir:stops => souvenir?.open({stops})});
     regionalTrails = window.FairTrails?.mount({frame,home:document.getElementById('province-home'),catalog,onNavigate:switchPicture,
       onStart:enterFair,onRestore:rememberVisiblePicture,onSouvenir:selection => souvenir?.open(selection)});
+    sceneExplore = window.FairSceneExplore?.mount({frame,catalog,stories,onNavigate:switchPicture});
     const doc = frame.contentDocument, labels = doc.getElementById('labels-container');
     const prepareLabels = () => {
       for (const label of labels.querySelectorAll('.label[id]')) {
         const entry = catalog?.[label.id.slice(6)];
         if (!entry) continue;
         label.tabIndex = 0; label.setAttribute('role','button');
-        label.setAttribute('aria-label',`走近${entry.label}`);
+        label.setAttribute('aria-label',`走近${entry.label}${label.classList.contains('scene-visited')?'，本次已看过':''}`);
       }
     };
     new MutationObserver(prepareLabels).observe(labels,{childList:true});

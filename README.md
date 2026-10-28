@@ -16,6 +16,12 @@
 
 ## 交互与动效
 
+地图新增“全部、看社火、识手艺、逛集市”四种观察方式。主题按已有场景关联地区，点亮的是本作品收录的代表内容；其余地区仍可选择。点击其他地区时恢复全部视图，郑州的两场庙会分别匹配。下拉选城、前后选择及随机选择收在“更多选城方式”中，地图加载失败时自动展开。主题按钮支持键盘操作，样式由 `home-exploration.css` 管理。
+
+会场和活动里的热点支持鼠标停留、键盘聚焦预览：先显示目标图片和一段故事，再由原热点进入独立场景。预览可悬停阅读、用 Escape 关闭，手机保持直接点入。进入更深层画面采用轻微推进，返回使用收回过渡，同层翻图沿左右方向切换；减少动态效果设置会跳过转场。仅在图片实际显示后记录本次已看过的热点，返回时以勾选与无障碍名称提示。相关实现为 `scene-exploration.js/css` 与 `host.js`，没有新增运行依赖。
+
+本轮交互参考：[Out of Eden Walk](https://outofedenwalk.nationalgeographic.org/) 的地图与章节关联、[Google Art Camera](https://artsandculture.google.com/project/art-camera) 的画作细节发现，以及 [Rijksmuseum 的 Vermeer 导览](https://www.rijksmuseum.nl/en/whats-on/exhibitions/past/vermeer) 中导览与自主探索并行的组织方式。参考公开页面说明，未复制其素材或代码；动效继续使用下文列出的本地 Motion 版本。
+
 “入画识物”覆盖浚县之外的18个案例。每条路线从完整会场进入一处活动或摊位，再走近人物器物；点击“走近看细节”展开由内置 imagegen 新绘的独立近景，画内三个观察点与当前画面的故事相互对应。18幅新增图、54处观察点由 `fair-trails-data.js` 编目，`fair-trails.js/css` 管理高亮、切图、键盘/触摸和失败重试。地图预览下会显示所选庙会的探索题目，其他场景仍可自由浏览。
 
 新增原生图均为1672×941 PNG，保留在项目的 `outputs/regional-trails/native/`；网页版本仅居中裁去少量边缘，另存1664×936 WebP，共约6.8MB，进入对应近景才加载。完整提示词与艺术补全边界见 [`assets/trails/provenance.json`](assets/trails/provenance.json)。南阳选用有影像依据的红黄灯笼街，不以未经近照核实的香肚形态作为新观察主题；航线里始终按展示模型呈现，开封飞车只描述观看与防护外观，不还原操作步骤。
