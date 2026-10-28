@@ -6,7 +6,7 @@
   const closeups = window.FairClayCloseupsData || [];
   const closeupId = item => `closeup:${item.id}`;
 
-  function mount({frame, home, onNavigate, onStart, onSouvenir, onRestore}) {
+  function mount({frame, home, onNavigate, onStart, onSouvenir, onRestore, onListen}) {
     if (mounted.has(frame)) return mounted.get(frame);
     const doc = frame.contentDocument;
     let nodeId = null, panel = null, marker = null, pending = false, holding = false;
@@ -30,7 +30,7 @@
     start.addEventListener('click', async () => {
       if (start.disabled) return;
       start.disabled = true;
-      try { await onStart(); }
+      try { if(await onStart()!==false) await onListen?.(STALL,start); }
       finally { start.disabled = false; }
     });
 
@@ -241,7 +241,8 @@
       const copy = create('p','clay-trail-copy',step === 0 ? '城墙下的热闹里，藏着一声小小的“咕咕”。找找泥塑摊在哪里。' : step === 1 ? '走到桌边，看见一排鸟兽。摊主掌心里的小鸟，还藏着一个会响的秘密。' : '从一场热闹，走到掌心这只泥鸟。接着看素坯、上彩和尾部，读一只小鸟从泥土到“咕咕”的故事。');
       const actions = create('div','clay-trail-actions');
       if (step < 2) {
-        const listen = button('clay-listen','听一声线索'); listen.addEventListener('click',() => cue(route[step+1]));
+        const listen = button('clay-listen',step===0?'循声找泥塑摊':'循声找掌中泥鸟');
+        listen.addEventListener('click',() => { stop();cleanClue();if(onListen)void onListen(route[step+1],listen);else cue(route[step+1]); });
         const next = button('clay-next',step === 0 ? '找到泥咕咕摊 →' : '走近掌中的泥鸟 →');
         next.dataset.targetId = route[step+1]; next.addEventListener('click',() => { void navigate(route[step+1]); });
         actions.append(listen,next);

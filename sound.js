@@ -169,11 +169,13 @@
   function stopClayWhistle() { clayVoice?.stop(); }
   // This is an artistic two-note synthesis, not a recording of a traditional whistle.
   // Return a synchronous cancellation function so pointerup can cancel a pending resume.
-  function clayWhistle({pan = 0} = {}) {
+  function clayWhistle({pan = 0, intensity = 1, maxDurationMs = 4000} = {}) {
     stopClayWhistle();
-    if (!clayWhistleAvailable()) return () => {};
+    if (!clayWhistleAvailable()) return Object.assign(() => {}, {update() {}});
     const position = Number.isFinite(pan) ? Math.max(-1,Math.min(1,pan)) : 0;
-    const voice = {started:false,stopped:false,pan:position,voices:new Set(),deadline:performance.now()+4000};
+    const strength = Number.isFinite(intensity) ? Math.max(0,Math.min(1,intensity)) : 1;
+    const duration = Number.isFinite(maxDurationMs) ? Math.max(1000,Math.min(8000,maxDurationMs)) : 4000;
+    const voice = {started:false,stopped:false,pan:position,intensity:strength,voices:new Set(),deadline:performance.now()+duration};
     voice.stop = () => {
       if (voice.stopped) return;
       voice.stopped = true;
@@ -191,8 +193,24 @@
       }
       if (clayVoice === voice) { clayVoice = null; ramp(musicBus,musicLevel(),.35); }
     };
+    // Keep the callable cancellation API while allowing a held exploration
+    // gesture to move the listener. Updates never start or extend a voice.
+    voice.stop.update = ({pan:nextPan, intensity:nextIntensity} = {}) => {
+      if (voice.stopped || clayVoice !== voice) return;
+      if (!clayWhistleAvailable() || performance.now() >= voice.deadline) { voice.stop(); return; }
+      if (Number.isFinite(nextPan)) voice.pan = Math.max(-1,Math.min(1,nextPan));
+      if (Number.isFinite(nextIntensity)) voice.intensity = Math.max(0,Math.min(1,nextIntensity));
+      if (!voice.started || !context) return;
+      ramp(voice.output,voice.intensity,.1);
+      if (voice.panner) {
+        const parameter = voice.panner.pan, at = context.currentTime;
+        if (parameter.cancelAndHoldAtTime) parameter.cancelAndHoldAtTime(at);
+        else { const held = parameter.value; parameter.cancelScheduledValues(at); parameter.setValueAtTime(held,at); }
+        parameter.linearRampToValueAtTime(voice.pan,at+.1);
+      }
+    };
     clayVoice = voice;
-    voice.limitTimer = setTimeout(voice.stop,4000);
+    voice.limitTimer = setTimeout(voice.stop,duration);
 
     function tone(frequency,time,duration,volume) {
       const oscillator = context.createOscillator(), gain = context.createGain(), filter = context.createBiquadFilter();
@@ -232,9 +250,9 @@
         voice.stop(); return;
       }
       try {
-        voice.output = context.createGain(); voice.output.gain.value = 1;
+        voice.output = context.createGain(); voice.output.gain.value = voice.intensity;
         if (typeof context.createStereoPanner === 'function') {
-          voice.panner = context.createStereoPanner(); voice.panner.pan.value = position;
+          voice.panner = context.createStereoPanner(); voice.panner.pan.value = voice.pan;
           voice.output.connect(voice.panner).connect(effectsBus);
         } else voice.output.connect(effectsBus);
         voice.started = true; clayWhistleCount++; lastCue = 'clay-whistle'; effectCount++;
@@ -351,7 +369,7 @@
     clayWhistle,
     openSettings,
     // Read-only diagnostic state for browser QA; no audio is started by inspection.
-    readState() { return {...prefs,context:context?.state || 'uninitialized',playing:Boolean(musicSource && active() && prefs.music && prefs.musicVolume),loading:Boolean(loading),effectsPlayed:effectCount,node:lastNode,musicDuration:musicBuffer?.duration || 0,musicFormat,reading,musicGain:musicBus?.gain.value || 0,musicPosition:musicBuffer ? (musicOffset+(musicSource ? context.currentTime-musicStartedAt : 0)) % musicBuffer.duration : 0,lastCue,clayWhistleAvailable:clayWhistleAvailable(),clayWhistleActive:Boolean(clayVoice?.started && !clayVoice.stopped),clayWhistlePending:Boolean(clayVoice && !clayVoice.started && !clayVoice.stopped),clayWhistleVoices:clayVoice?.voices.size || 0,clayWhistleCount,clayWhistlePan:clayVoice?.pan || 0,error}; }
+    readState() { return {...prefs,context:context?.state || 'uninitialized',playing:Boolean(musicSource && active() && prefs.music && prefs.musicVolume),loading:Boolean(loading),effectsPlayed:effectCount,node:lastNode,musicDuration:musicBuffer?.duration || 0,musicFormat,reading,musicGain:musicBus?.gain.value || 0,musicPosition:musicBuffer ? (musicOffset+(musicSource ? context.currentTime-musicStartedAt : 0)) % musicBuffer.duration : 0,lastCue,clayWhistleAvailable:clayWhistleAvailable(),clayWhistleActive:Boolean(clayVoice?.started && !clayVoice.stopped),clayWhistlePending:Boolean(clayVoice && !clayVoice.started && !clayVoice.stopped),clayWhistleVoices:clayVoice?.voices.size || 0,clayWhistleCount,clayWhistlePan:clayVoice?.pan || 0,clayWhistleIntensity:clayVoice?.intensity || 0,error}; }
   };
   render();
 })();

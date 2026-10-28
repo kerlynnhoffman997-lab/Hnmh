@@ -144,6 +144,7 @@
     }
 
     function onKeyDown(event) {
+      if (frameDocument?.body.classList.contains('clay-listening-active')) return;
       if (!['ArrowLeft','ArrowRight'].includes(event.key) || event.defaultPrevented || event.repeat ||
           event.isComposing || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ||
           !navigation || navigation.hidden || pending || frame.hidden || frame.inert) return;
@@ -160,7 +161,7 @@
       const stage = doc.getElementById('main-image-container');
       if (!stage) return;
       let start = null;
-      const eligible = event => !pending && !frame.inert && !frame.hidden &&
+      const eligible = event => !pending && !frame.inert && !frame.hidden && !doc.body.classList.contains('clay-listening-active') &&
         !hasDialog(hostDocument) && !hasDialog(doc) &&
         (doc.body.classList.contains('picture-fit') || doc.body.classList.contains('picture-detail') || doc.body.classList.contains('reading-page')) &&
         !event.target.closest?.('#picture-caption,#picture-tools,.label,button,a,[role="button"],[id^="dot-"],[id^="line-"]');

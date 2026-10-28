@@ -30,6 +30,7 @@
   let regionalTrails = null;
   let souvenir = null;
   let sceneExplore = null;
+  let listening = null;
   let visitRequest = 0;
   let activeFeature = null;
   let pictureRequest = 0;
@@ -117,7 +118,7 @@
       doc.addEventListener('keydown', event => {
         if (event.key === 'Escape' && !hostDialogs.some(d => d.open)) {
           event.preventDefault(); event.stopImmediatePropagation();
-          if (!sceneExplore?.dismissPreview()) goUp();
+          if (!listening?.dismiss() && !sceneExplore?.dismissPreview()) goUp();
         }
       }, true);
       const location = doc.createElement('div'); location.id = 'journey-location';
@@ -279,6 +280,7 @@
   }
 
   function renderPicture(nodeId) {
+    listening?.update(nodeId);
     sceneExplore?.update(nodeId);
     const doc = frame.contentDocument, entry = catalog?.[nodeId];
     const caption = doc?.getElementById('picture-caption');
@@ -570,8 +572,10 @@
     }});
     continuation = window.FairContinuation?.mount({frame,catalog,onNavigate:switchPicture,onMap() { navigateViewer(ROOT_ID); }});
     souvenir = window.FairSouvenir?.mount({container:document.body,catalog});
+    listening = window.FairListening?.mount({frame,onNavigate:switchPicture});
     clayTrail = window.FairClayTrail?.mount({frame,home:document.getElementById('province-home'),onNavigate:switchPicture,
-      onStart:() => enterFair('fair-hb-jx'),onRestore:rememberVisiblePicture,onSouvenir:stops => souvenir?.open({stops})});
+      onStart:() => enterFair('fair-hb-jx'),onRestore:rememberVisiblePicture,onSouvenir:stops => souvenir?.open({stops}),
+      onListen:(targetId,source) => listening?.start({nodeId:currentNode,targetId,source})});
     regionalTrails = window.FairTrails?.mount({frame,home:document.getElementById('province-home'),catalog,onNavigate:switchPicture,
       onStart:enterFair,onRestore:rememberVisiblePicture,onSouvenir:selection => souvenir?.open(selection)});
     sceneExplore = window.FairSceneExplore?.mount({frame,catalog,stories,onNavigate:switchPicture});
