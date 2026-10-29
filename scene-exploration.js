@@ -97,6 +97,7 @@
       navigating = true; close();
       label?.setAttribute('aria-busy','true');
       const s = stage.getBoundingClientRect(), r = found.element.getBoundingClientRect();
+      window.FairMotion?.pulseAt(doc,r.left+r.width/2,r.top+r.height/2);
       const origin = {x:Math.max(0,Math.min(1,(r.left+r.width/2-s.left)/s.width)),y:Math.max(0,Math.min(1,(r.top+r.height/2-s.top)/s.height))};
       try { await onNavigate(found.id,{origin}); }
       catch { /* The host supplies the failure message and preserves the current view. */ }

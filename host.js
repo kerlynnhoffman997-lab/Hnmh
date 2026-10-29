@@ -152,8 +152,15 @@
       const surface = document.getElementById('province-home');
       surface.inert = true;
       if (!reduceMotion()) {
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const preview = surface.querySelector('.home-preview-image');
+        const samePicture = preview?.src === new URL(pictureUrl(catalog[nodeId]),location.href).href;
+        const flight = samePicture ? window.FairMotion.enterPicture(preview,frame.contentDocument.getElementById('main-image-container'),frame) : null;
         const animation = window.FairMotion.animate(surface,{opacity:[1,0],transform:['scale(1)','scale(1.025)']},{duration:.48});
-        await animation.finished; home.setVisible(false); animation.cancel();
+        const faded = animation.finished.then(() => home.setVisible(false));
+        try { await Promise.all([faded,flight?.finished]); }
+        finally { flight?.cancel(); animation.cancel(); }
+        home.setVisible(false);
       } else home.setVisible(false);
       frame.inert = false; frame.focus({preventScroll:true});
       return true;

@@ -142,6 +142,8 @@
     }});
     let previewRequest = 0;
     let previewAnimation = null;
+    let locator = null, locatorTimer = null;
+    const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
     let enterVisible = false, editorialVisible = false;
     let peekCity = null;
     const themeButtons = themes.map(theme => {
@@ -158,6 +160,43 @@
       });
       get('.home-map-themes').append(button); return button;
     });
+    const themeBar = get('.home-map-themes');
+    const themeIndicator = document.createElement('span');
+    themeIndicator.className = 'home-theme-indicator'; themeIndicator.setAttribute('aria-hidden','true');
+    themeBar.append(themeIndicator); themeBar.classList.add('has-theme-indicator');
+    function positionThemeIndicator() {
+      const selected = themeButtons.find(button => button.dataset.theme === activeTheme.id);
+      if (!selected) return;
+      themeIndicator.style.setProperty('--theme-x', selected.offsetLeft + 'px');
+      themeIndicator.style.setProperty('--theme-y', selected.offsetTop + selected.offsetHeight - 2 + 'px');
+      themeIndicator.style.setProperty('--theme-width', selected.offsetWidth + 'px');
+    }
+    new ResizeObserver(positionThemeIndicator).observe(themeBar);
+    function clearLocator() {
+      clearTimeout(locatorTimer); locator?.remove(); locator = null;
+    }
+    function locateCity(city) {
+      clearLocator();
+      if (motionPreference.matches || container.hidden || document.hidden) return;
+      const label = [...mapCanvas.querySelectorAll('.home-map-label')].find(item => item.dataset.city === city);
+      if (!label) return;
+      const r = label.getBoundingClientRect(), map = mapCanvas.getBoundingClientRect();
+      if (!r.width || r.bottom < 0 || r.top > innerHeight) return;
+      locator = document.createElement('span'); locator.className = 'home-map-locator';
+      locator.setAttribute('aria-hidden','true'); locator.dataset.city = city;
+      locator.style.left = r.left + r.width/2 - map.left + 'px';
+      locator.style.top = r.top + r.height/2 - map.top + 'px';
+      mapCanvas.append(locator);
+      locatorTimer = setTimeout(clearLocator, 760);
+    }
+    function stopHomeMotion() {
+      clearLocator(); previewAnimation?.cancel();
+      get('.home-preview').querySelectorAll('.home-preview-previous').forEach(image => image.remove());
+    }
+    container.addEventListener('scroll',clearLocator,{passive:true});
+    addEventListener('resize',clearLocator,{passive:true});
+    document.addEventListener('visibilitychange',() => { if (document.hidden) stopHomeMotion(); });
+    motionPreference.addEventListener('change',() => { if (motionPreference.matches) stopHomeMotion(); });
     get('.home-map-themes').addEventListener('keydown', event => {
       if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
       const index = themeButtons.indexOf(event.target); if (index < 0) return;
@@ -172,6 +211,7 @@
     function updateTheme() {
       container.dataset.mapTheme = activeTheme.id;
       for (const button of themeButtons) button.setAttribute('aria-pressed', String(button.dataset.theme === activeTheme.id));
+      positionThemeIndicator();
       const matches = worlds.filter(matchesTheme);
       const matchingCities = new Set(matches.map(world => world.city));
       for (const item of mapCanvas.querySelectorAll('[data-city]')) {
@@ -255,7 +295,8 @@
         window.FairMotion?.reveal(get('.home-selection-description'), {duration:.38});
       }
       if (previous) {
-        previewAnimation = window.FairMotion?.animate(previous, {opacity:[1,0],transform:['scale(1)','scale(1.035)']}, {duration:.42});
+        previewAnimation = window.FairMotion?.animate(previous,
+          {opacity:[1,0],clipPath:['inset(0 0 0 0)','inset(0 0 0 100%)']}, {duration:.5});
         await previewAnimation?.finished;
         previous.remove();
       }
@@ -324,6 +365,7 @@
       if (announce) {
         const region = [...mapCanvas.querySelectorAll('.home-region')].find(item => item.dataset.city === city);
         if (region) window.FairMotion?.animate(region, {opacity:[.55,1]}, {duration:.4});
+        locateCity(city);
       }
       selectFair(choices.find(world => world.id === previousChoice) || choices.find(matchesTheme) || choices[0], announce);
       hidePeek();
@@ -477,6 +519,7 @@
       },
       setEntering(entering) {
         isEntering = Boolean(entering);
+        if (isEntering) stopHomeMotion();
         for (const button of [enter,previewOpen,dockEnter]) button.disabled = isEntering || !selectedWorld;
         previewOpen.disabled = isEntering || !selectedWorld || get('.home-preview').getAttribute('aria-busy') === 'true' || get('.home-preview-image').hidden;
         for (const button of cityButtons) button.disabled = isEntering;
@@ -496,6 +539,7 @@
         if (isEntering) status.textContent = `正在准备${selectedWorld?.label || '庙会'}的画面。`;
       },
       setVisible(visible) {
+        if (!visible) stopHomeMotion();
         container.hidden = !visible;
         container.setAttribute('aria-hidden', String(!visible));
         container.inert = !visible;

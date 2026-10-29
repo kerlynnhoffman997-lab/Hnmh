@@ -1,0 +1,15 @@
+/* Brief action feedback; no continuous motion over an illustration. */
+.fair-touch-ring {
+  position: fixed; z-index: 12000; width: 42px; height: 42px; margin: -21px 0 0 -21px;
+  border: 1px solid #ffe1a1; border-radius: 50%; box-sizing: border-box;
+  box-shadow: 0 0 0 6px #fae1a126,inset 0 0 16px #ffe5b555;
+  pointer-events: none; transform-origin: center;
+}
+.fair-entry-picture {
+  position: fixed; z-index: 20000; display: block; object-fit: contain; max-width: none;
+  pointer-events: none; transform-origin: top left; background: #20372e;
+  box-shadow: 0 12px 46px #162c2933; will-change: transform,opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fair-entry-picture,.fair-touch-ring { display: none !important; }
+}

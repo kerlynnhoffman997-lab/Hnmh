@@ -1,0 +1,44 @@
+/* Brief responses to a visitor's choice; the atlas is still while being read. */
+.refined-home .home-map-themes { position: relative; }
+.refined-home .home-map-themes.has-theme-indicator .home-map-theme { border-bottom-color: transparent; }
+.home-theme-indicator {
+  position: absolute; left: 0; top: 0; width: var(--theme-width,0px); height: 2px;
+  transform: translate(var(--theme-x,0px),var(--theme-y,0px));
+  background: #405e45; pointer-events: none;
+  transition: transform 320ms cubic-bezier(.22,.68,.2,1), width 320ms cubic-bezier(.22,.68,.2,1);
+}
+.home-map-locator {
+  position: absolute; z-index: 2; width: 36px; height: 36px; margin: -18px 0 0 -18px;
+  border-radius: 50%; pointer-events: none;
+}
+.home-map-locator::before,.home-map-locator::after {
+  content: ''; position: absolute; inset: 0; border: 1.5px solid #f7dd9e;
+  border-radius: inherit; box-shadow: 0 0 0 1px #80462b50;
+  animation: home-map-locate 650ms cubic-bezier(.15,.6,.25,1) both;
+}
+.home-map-locator::after { animation-delay: 90ms; border-color: #f9ebc3; }
+@keyframes home-map-locate {
+  from { transform: scale(.35); opacity: .95; }
+  to { transform: scale(2.25); opacity: 0; }
+}
+.refined-home .home-preview-previous { object-fit: contain; }
+.refined-home .home-enter > span:last-child,
+.refined-home .home-dock-enter > span:last-child,
+.refined-home .home-clay-trail > span:last-child {
+  display: inline-block; transition: transform 220ms cubic-bezier(.22,.68,.2,1);
+}
+.refined-home .home-enter:focus-visible > span:last-child,
+.refined-home .home-dock-enter:focus-visible > span:last-child,
+.refined-home .home-clay-trail:focus-visible > span:last-child { transform: translate(3px,-3px); }
+@media (hover:hover) and (pointer:fine) {
+  .refined-home .home-enter:not(:disabled):hover > span:last-child,
+  .refined-home .home-dock-enter:not(:disabled):hover > span:last-child,
+  .refined-home .home-clay-trail:not(:disabled):hover > span:last-child { transform: translate(3px,-3px); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .home-map-locator { display: none; }
+  .home-theme-indicator { transition: none; }
+  .refined-home .home-enter > span:last-child,
+  .refined-home .home-dock-enter > span:last-child,
+  .refined-home .home-clay-trail > span:last-child { transition: none; transform: none !important; }
+}
