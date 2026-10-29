@@ -118,7 +118,8 @@
       doc.addEventListener('keydown', event => {
         if (event.key === 'Escape' && !hostDialogs.some(d => d.open)) {
           event.preventDefault(); event.stopImmediatePropagation();
-          if (!listening?.dismiss() && !sceneExplore?.dismissPreview()) goUp();
+          if (!listening?.dismiss() && !sceneExplore?.dismissPreview() &&
+              !clayTrail?.dismissDetail() && !regionalTrails?.dismissDetail()) goUp();
         }
       }, true);
       const location = doc.createElement('div'); location.id = 'journey-location';
@@ -286,6 +287,7 @@
     const caption = doc?.getElementById('picture-caption');
     if (!caption || !entry) return;
     if (caption.dataset.nodeId !== nodeId) {
+      doc.defaultView.FairReading?.capture();
       caption.dataset.nodeId = nodeId;
       caption.querySelector('small').textContent = [entry.city,entry.supplementary ? '地方手艺 · AI 概念插画' : entry.kind === 'world' ? '走进庙会' : entry.kind === 'scene' ? '会场一隅' : '人与物的故事'].filter(Boolean).join(' · ');
       caption.querySelector('h1').textContent = entry.label;

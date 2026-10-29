@@ -8,11 +8,15 @@
   stageParent.insertBefore(page,stage);
   let currentNode = null, currentKind = null, exploring = false, wasPortrait = null;
   let defaultExpanded = false;
+  const readingPlaces = new Map();
+  let restoreRequest = 0;
+  let changingNode = false;
+  let lastReadingPosition = null;
   const portrait = () => innerWidth <= 700 && innerHeight > innerWidth;
   const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const caption = document.createElement('aside'); caption.id = 'picture-caption';
   caption.innerHTML = '<small></small><h1></h1><div id="caption-reading" tabindex="0" aria-label="画中故事"><p class="caption-summary"></p><div id="caption-more" hidden></div></div><button id="caption-expand" type="button" aria-expanded="false" aria-controls="caption-more">继续读故事 ↓</button>';
-  caption.setAttribute('aria-live','polite');
+  caption.setAttribute('aria-label','当前画面的故事');
   const controls = document.createElement('div'); controls.id = 'picture-tools';
   controls.innerHTML = '<button type="button" id="picture-fit" aria-pressed="false">缩小看</button><button type="button" id="picture-caption-toggle" aria-pressed="true">故事</button>';
   stage.append(caption,controls);
@@ -20,6 +24,61 @@
   const storyButton = document.getElementById('picture-caption-toggle');
   const expandButton = document.getElementById('caption-expand');
   const more = document.getElementById('caption-more');
+  const returnBar = document.createElement('div'); returnBar.id = 'reading-return';
+  returnBar.hidden = true;
+  returnBar.innerHTML = '<div class="reading-return-progress" aria-hidden="true"></div><span>画中故事</span><button type="button">回到画面 <span aria-hidden="true">↑</span></button>';
+  document.body.append(returnBar);
+  const readingArea = document.getElementById('caption-reading');
+  let progressFrame = 0;
+  function updateReadingProgress() {
+    progressFrame = 0;
+    const reading = document.body.classList.contains('reading-page');
+    returnBar.hidden = !reading || document.body.classList.contains('clay-listening-active') || page.scrollTop < stage.offsetHeight + 20;
+    const extent = page.scrollHeight - page.clientHeight;
+    returnBar.style.setProperty('--reading-progress', String(extent > 0 ? Math.min(1, page.scrollTop / extent) : 0));
+  }
+  function scheduleProgress() {
+    if (!progressFrame) progressFrame = requestAnimationFrame(updateReadingProgress);
+  }
+  page.addEventListener('scroll', () => {
+    // A rotation may clamp scrollTop before resize fires. Retain the last
+    // position measured in the previous orientation, not the reflowed value.
+    if (!changingNode && currentNode && wasPortrait === portrait() && document.body.classList.contains('reading-page')) {
+      lastReadingPosition = {nodeId:currentNode,top:page.scrollTop};
+    }
+    scheduleProgress();
+  }, {passive:true});
+  new ResizeObserver(scheduleProgress).observe(caption);
+  new MutationObserver(scheduleProgress).observe(document.body, {attributes:true,attributeFilter:['class']});
+  returnBar.querySelector('button').addEventListener('click', () => {
+    page.scrollTo({top:0,behavior:reduced()?'instant':'smooth'});
+    fitButton.focus({preventScroll:true});
+  });
+  function capturePlace() {
+    if (!currentNode || changingNode || document.body.matches('.clay-listening-active,.clay-closeup-active,.fair-trail-detail-active')) return;
+    const saved = readingPlaces.get(currentNode) || {};
+    if (document.body.classList.contains('reading-page')) {
+      saved.page = wasPortrait !== portrait() && lastReadingPosition?.nodeId === currentNode
+        ? lastReadingPosition.top : page.scrollTop;
+    }
+    else { saved.caption = readingArea.scrollTop; saved.expanded = caption.classList.contains('expanded'); }
+    readingPlaces.delete(currentNode); readingPlaces.set(currentNode,saved);
+    if (readingPlaces.size > 180) readingPlaces.delete(readingPlaces.keys().next().value);
+  }
+  function restorePlace() {
+    const request = ++restoreRequest, nodeId = currentNode, saved = readingPlaces.get(nodeId);
+    if (document.body.matches('.clay-closeup-active,.fair-trail-detail-active')) { scheduleProgress(); return; }
+    if (saved && !document.body.classList.contains('reading-page')) expandStory(Boolean(saved.expanded));
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (request !== restoreRequest || currentNode !== nodeId) return;
+      if (document.body.classList.contains('reading-page')) {
+        page.scrollTop = saved?.page || 0;
+        lastReadingPosition = {nodeId,top:page.scrollTop};
+      }
+      else readingArea.scrollTop = saved?.caption || 0;
+      scheduleProgress();
+    }));
+  }
 
   function expandStory(expanded) {
     caption.classList.toggle('expanded',expanded); more.hidden = !expanded;
@@ -27,6 +86,7 @@
     expandButton.textContent = expanded ? '收起细说 ↑' : '继续读故事 ↓';
   }
   function readStory() {
+    ++restoreRequest; // This explicit action takes priority over layout restoration.
     caption.hidden = false; storyButton.setAttribute('aria-pressed','true');
     expandStory(true);
     requestAnimationFrame(() => {
@@ -41,7 +101,9 @@
   function layout() {
     const w = innerWidth, h = innerHeight;
     const isPortrait = portrait();
-    if (wasPortrait !== isPortrait) {
+    const orientationChanged = wasPortrait !== isPortrait;
+    if (orientationChanged) {
+      capturePlace();
       exploring = false;
       document.body.classList.remove('picture-fit');
       if (!isPortrait && defaultExpanded) { expandStory(false); defaultExpanded = false; }
@@ -49,6 +111,7 @@
     }
     const reading = isPortrait && !exploring;
     const wasReading = document.body.classList.contains('reading-page');
+    if (reading !== wasReading && !orientationChanged) capturePlace();
     document.body.classList.toggle('reading-page',reading);
     document.body.classList.toggle('reading-explore',isPortrait && exploring);
     if (reading !== wasReading) {
@@ -78,6 +141,8 @@
     fitButton.setAttribute('aria-pressed',String(fit));
     fitButton.setAttribute('aria-label',reading ? '放大画面，自由拖动探索' : isPortrait && exploring ? '返回完整画面与故事' : fitButton.textContent);
     storyButton.textContent = reading || (isPortrait && exploring) ? '读故事' : '故事';
+    if (reading !== wasReading) restorePlace();
+    scheduleProgress();
   }
   layout();
   addEventListener('resize', layout);
@@ -106,8 +171,11 @@
   // Reading gestures stay inside the caption instead of moving the picture.
   for (const type of ['wheel','touchmove','keydown']) caption.addEventListener(type,event=>event.stopPropagation());
   window.FairReading = {
+    capture: capturePlace,
+    restore: restorePlace,
     update({nodeId,kind} = {}) {
       const changed = nodeId !== currentNode;
+      changingNode = changed;
       currentNode = nodeId; currentKind = kind;
       document.body.dataset.readingKind = kind || '';
       if (changed) {
@@ -120,6 +188,8 @@
         expandStory(true); defaultExpanded = true; page.scrollTop = 0;
       }
       expandButton.hidden = !more.children.length;
+      changingNode = false;
+      if (changed) restorePlace();
       if (before !== document.body.classList.contains('reading-page')) dispatchEvent(new Event('resize'));
     }
   };

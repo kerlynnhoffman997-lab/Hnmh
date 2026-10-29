@@ -122,6 +122,7 @@
 
     async function navigate(nodeId) {
       if (pending || !catalog?.[nodeId] || nodeId === currentNodeId || frame.inert || frame.hidden) return;
+      const focusedControl = navigation.contains(frameDocument.activeElement) ? frameDocument.activeElement : null;
       pending = true;
       render();
       announcement.textContent = `正在切换到${catalog[nodeId].label}`;
@@ -130,11 +131,24 @@
         const index = currentSequence.indexOf(nodeId);
         const direction = index >= 0 ? (index < currentIndex ? 'previous' : 'next') : undefined;
         await onNavigate(nodeId,{direction});
+        if (currentNodeId === nodeId) {
+          const sequence = getSequence(nodeId);
+          announcement.textContent = `已显示${catalog[nodeId].label}${sequence ? `，第${sequence.index + 1}幅，共${sequence.ids.length}幅` : ''}。`;
+        } else announcement.textContent = '';
       } catch {
         announcement.textContent = '图片暂未切换，请重试。';
       } finally {
         pending = false;
         render();
+        // Pending controls and the selected dot become disabled. Keep keyboard
+        // users at the picture controls rather than losing focus to the canvas.
+        const active = frameDocument.activeElement;
+        if (focusedControl && !navigation.hidden && !frame.inert && !frame.hidden &&
+            !hasDialog(hostDocument) && !hasDialog(frameDocument) &&
+            (active === frameDocument.body || navigation.contains(active))) {
+          const focus = focusedControl.isConnected && !focusedControl.disabled ? focusedControl : count;
+          focus.focus({preventScroll: true});
+        }
       }
     }
 
@@ -237,6 +251,7 @@
       title.className = 'picture-navigation-title';
       count = doc.createElement('span');
       count.className = 'picture-navigation-count';
+      count.tabIndex = -1;
       heading.append(title, count);
       dots = doc.createElement('div');
       dots.className = 'picture-navigation-dots';

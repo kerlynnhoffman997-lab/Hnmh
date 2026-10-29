@@ -57,3 +57,56 @@ body.reading-page #caption-reading:focus-visible { outline-color: #9d4935; }
 @media (prefers-reduced-motion: reduce) {
   body.reading-page #picture-reading-page { scroll-behavior: auto; }
 }
+
+/* A place to return to the illustration, without interrupting a long story. */
+#reading-return[hidden] { display: none !important; }
+#reading-return { display: none; }
+body.reading-page #picture-reading-page { padding-bottom: 64px; box-sizing: border-box; }
+body.reading-page #reading-return {
+  position: fixed; z-index: 1198; bottom: var(--fair-navigation-height); left: 0; right: 0;
+  display: flex; justify-content: space-between; align-items: center; gap: 14px;
+  min-height: 48px; padding: 2px 20px; box-sizing: border-box;
+  border-top: 1px solid #a4947033; background: #f7f1e5f5; color: #68745e;
+  font: 12px/1.6 'Noto Sans SC','Microsoft YaHei',sans-serif; backdrop-filter: blur(8px);
+}
+#reading-return .reading-return-progress {
+  position: absolute; left: 0; right: 0; top: -1px; height: 2px; background: #a3432f;
+  transform: scaleX(var(--reading-progress,0)); transform-origin: left; pointer-events: none;
+}
+#reading-return button {
+  min-height: 44px; padding: 0 2px 0 16px; border: 0; background: transparent;
+  color: #8f4d34; cursor: pointer; font: inherit; touch-action: manipulation;
+}
+#reading-return button span { padding-left: 8px; }
+#reading-return button:focus-visible { outline: 2px solid #a3432f; outline-offset: 2px; }
+html body.adaptive-layout.reading-page #picture-caption { padding-inline: clamp(22px,6.1vw,38px); }
+html body.adaptive-layout.reading-page #caption-reading p,
+html body.adaptive-layout.reading-page #caption-reading .caption-summary { font-size: 15px; line-height: 2; }
+body.reading-page .caption-section { margin-top: 25px; padding-top: 22px; }
+body.reading-page .caption-section h2 { font: 500 18px/1.6 'Noto Serif SC','Songti SC',SimSun,serif; }
+
+/* Expanded stories keep a clear reading surface beside the open illustration. */
+@media (min-width: 1000px) and (min-height: 600px) {
+  html body.adaptive-layout:not(.reading-page) #picture-caption.expanded {
+    left: auto; right: 24px; top: 76px; bottom: 24px; width: min(430px,39vw); max-height: none;
+    padding: 25px 27px 18px; border: 1px solid #c8b78b55; border-top: 2px solid #c9a664;
+    border-radius: 2px; background: #20372ef5; box-shadow: 0 12px 44px #12231d30;
+    text-shadow: none; pointer-events: auto;
+  }
+  body.adaptive-layout:not(.reading-page) #picture-caption.expanded h1 {
+    font-size: 28px; line-height: 1.5; margin: 10px 0 20px;
+  }
+  body.adaptive-layout:not(.reading-page) #picture-caption.expanded #caption-reading {
+    padding-right: 12px; scrollbar-gutter: stable; scroll-padding-top: 14px;
+  }
+  body.adaptive-layout:not(.reading-page) #picture-caption.expanded #caption-reading p {
+    font-size: 14px; line-height: 2; color: #f2eddf;
+  }
+  body.adaptive-layout:not(.reading-page) #picture-caption.expanded .caption-section { margin-top: 23px; padding-top: 20px; }
+  body.adaptive-layout:not(.reading-page) #picture-caption.expanded .caption-section h2 {
+    font: 500 18px/1.65 'Noto Serif SC','Songti SC',SimSun,serif; margin-bottom: 9px;
+  }
+  body.adaptive-layout:not(.reading-page) #picture-caption.expanded #caption-expand {
+    width: 100%; min-height: 44px; text-align: left; border-top: 1px solid #dbc9a22b; margin-top: 15px;
+  }
+}

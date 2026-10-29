@@ -55,6 +55,7 @@
       live.textContent = `正在返回${labelFor(catalog[nodeId])}`;
       try {
         await onNavigate(nodeId);
+        live.textContent = currentNodeId === nodeId ? `已返回${labelFor(catalog[nodeId])}。` : '';
       } catch {
         live.textContent = '暂未返回，请重试。';
       } finally {

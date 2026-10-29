@@ -12,6 +12,7 @@ body.clay-trail-active:not(.reading-page) #caption-reading { overflow-y:auto; pa
 .clay-trail-kicker { display:flex; justify-content:space-between; align-items:center; gap:14px; color:#e9cb8f; font:11px/1.6 'Microsoft YaHei',sans-serif; letter-spacing:.08em; }
 .clay-step { font:12px/1.6 Georgia,serif; letter-spacing:.12em; }
 #picture-caption .clay-trail .clay-trail-copy { display:block; max-width:42em; overflow:visible; -webkit-line-clamp:unset; margin:9px 0 12px; color:#ece5d4; font:13px/1.85 'Microsoft YaHei',sans-serif; }
+#picture-caption .clay-trail .clay-trail-copy[hidden] { display:none!important; }
 .clay-trail-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; }
 #picture-caption .clay-trail button { min-height:44px; max-width:100%; padding:8px 12px; border:1px solid #bda67c90; border-radius:6px; font:12px/1.6 'Microsoft YaHei',sans-serif; color:#fbefd1; background:#345042; cursor:pointer; }
 #picture-caption .clay-trail .clay-listen,#picture-caption .clay-trail .clay-hold-control { border-color:#d9b36c; background:#ead9ae; color:#34452f; }

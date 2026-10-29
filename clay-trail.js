@@ -13,7 +13,7 @@
     let stopAudio = null, stopTimer = null, clueTimer = null, pulseTarget = null;
     let physicalUntil = 0, pressedPointer = null;
     let entering = false, activeIndex = -1, loadingIndex = -1, detailImage = null, detailState = 'closed';
-    let request = 0, loadTimer = null, viewTimer = null, cancelLoad = null;
+    let request = 0, loadTimer = null, viewTimer = null, cancelLoad = null, lastDetailIndex = -1;
     const stage = doc.getElementById('main-image-container'), view = doc.defaultView;
     const visited = new Set();
     const create = (tag, className, text) => {
@@ -122,13 +122,15 @@
     }
     function closeDetail(restore = false) {
       stop(); cancelRequest(); clearTimeout(viewTimer);
-      detailImage?.remove(); detailImage = null; activeIndex = -1; detailState = 'closed';
+      detailImage?.remove(); detailImage = null; activeIndex = -1; lastDetailIndex = -1; detailState = 'closed';
       doc.body.classList.remove('clay-closeup-active');
       syncPending(); placeMarker();
       if (restore) {
         status('回到掌中的泥鸟，还可以继续看看另外两幅小场景。');
         const restoredNode = nodeId;
-        void Promise.resolve().then(() => onRestore?.(restoredNode)).catch(() => {});
+        void Promise.resolve().then(() => onRestore?.(restoredNode)).then(() => {
+          if (nodeId === restoredNode) view.FairReading?.restore();
+        }).catch(() => {});
       }
     }
     function recordVisibleCloseup() {
@@ -148,6 +150,8 @@
     async function openDetail(index) {
       const item = closeups[index];
       if (!item || pending || entering || frame.inert || nodeId !== BIRD) return;
+      if (detailState === 'closed') view.FairReading?.capture();
+      lastDetailIndex = index;
       if (activeIndex === index && detailImage) { cancelRequest(); detailState = 'ready'; status(''); syncPending(); return; }
       stop(); cancelRequest(); const ticket = request;
       loadingIndex = index; detailState = 'loading';
@@ -197,6 +201,11 @@
     }
     function syncPending() {
       if (!panel) return;
+      const copy = panel.querySelector('.clay-trail-copy');
+      const compact = text => (text || '').replace(/\s+/g, '');
+      const copyText = compact(copy?.textContent);
+      const summaryText = compact(doc.querySelector('#caption-reading > .caption-summary')?.textContent);
+      if (copy) copy.hidden = !doc.body.classList.contains('clay-closeup-active') && Boolean(copyText && copyText === summaryText);
       const busy = pending || entering;
       panel.setAttribute('aria-busy',String(busy || loadingIndex >= 0));
       panel.dataset.detailState = detailState;
@@ -306,6 +315,14 @@
       record(id) { if (route.includes(id) && id === nodeId && !(id === BIRD && detailImage)) { visited.add(id); syncPending(); } },
       begin() { stop(); cleanClue(); closeDetail(); visited.clear(); syncPending(); },
       setEntering(value) { entering = Boolean(value); start.disabled = entering; if (entering) stop(); syncPending(); },
+      dismissDetail() {
+        if (detailState === 'closed') return false;
+        const index = lastDetailIndex;
+        closeDetail(true);
+        const tabs = panel?.querySelectorAll('.clay-closeup-tab');
+        (tabs?.[index] || tabs?.[0])?.focus({preventScroll: true});
+        return true;
+      },
       readState() { return {nodeId,holding,visited:[...visited],activeIndex,loadingIndex,detailState}; }
     });
     mounted.set(frame,api); return api;

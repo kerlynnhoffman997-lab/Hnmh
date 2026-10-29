@@ -93,7 +93,7 @@
             </ol>
           </header>
           <section class="home-map-section" aria-label="选择庙会地区">
-            <div class="home-map-heading"><span><i aria-hidden="true">壹</i>寻一座城</span><span class="home-map-instruction">此行 · <strong class="home-map-current"></strong></span></div>
+            <div class="home-map-heading"><span><i aria-hidden="true">壹</i>寻一座城</span><span class="home-map-instruction">已选 · <strong class="home-map-current"></strong></span></div>
             <div class="home-map-themes" role="group" aria-label="按庙会主题点亮地图"></div>
             <p class="home-map-theme-status" role="status" aria-live="polite" aria-atomic="true"></p>
             <div class="home-map-canvas" aria-busy="true"><p class="home-map-loading" role="status">正在展开河南地图…</p></div>
@@ -105,13 +105,12 @@
             <div class="home-map-bottom"><p class="home-map-key"><i aria-hidden="true"></i><span>点选地图，看看这座城的庙会</span></p></div>
           </section>
           <section class="home-selection" aria-label="所选地区的庙会">
-            <div class="home-selection-heading"><p class="home-selection-kicker">贰 · 走进 <span class="home-selected-city"></span><span class="home-fair-count"></span></p>
+            <div class="home-selection-heading"><div class="home-selection-name"><p class="home-selection-kicker">贰 · 走进 <span class="home-selected-city"></span><span class="home-fair-count"></span></p><h2 class="home-fair-title"></h2></div>
             <div class="home-fair-options" role="group" aria-label="选择郑州的庙会"></div></div>
             <div class="home-preview">
               <img class="home-preview-image" alt="" decoding="async" width="1664" height="936">
               <div class="home-preview-recovery" hidden><p>这幅画暂未展开</p><button class="home-preview-retry" type="button">重试预览</button></div>
               <button class="home-preview-open" type="button" aria-label="走进所选庙会"><span aria-hidden="true">↗</span></button>
-              <div class="home-preview-caption"><span class="home-preview-mark" aria-hidden="true">此行<br>将至</span><h2 class="home-fair-title"></h2></div>
             </div>
             <div class="home-selection-foot">
               <p class="home-selection-description"></p>
@@ -211,10 +210,15 @@
       previewAnimation?.cancel();
       surface.querySelectorAll('.home-preview-previous').forEach(image => image.remove());
       const label = world?.label || '庙会暂未载入';
-      const description = cityTopics[selectedCity] || '';
+      const description = world?.caseId === 'zz-zy' ? '穿过古柏与殿院，沿鼓声走近赶会人的日常。'
+        : world?.caseId === 'zz-hx' ? '从航空模型到年画拓印，新街里也有熟悉的年味。'
+        : cityTopics[selectedCity] || '';
       const alt = `${selectedCity} · ${label}全景，AI 概念插画`;
       const src = world ? `assets/worlds/${world.caseId}.webp` : '';
       surface.setAttribute('aria-busy', String(Boolean(world)));
+      get('.home-fair-title').textContent = label;
+      get('.home-selection-description').textContent = description;
+      renderClues(world);
       previewOpen.disabled = true;
       if (!world) { preview.hidden = true; surface.setAttribute('aria-busy','false'); return; }
       const image = new Image(); image.src = src;

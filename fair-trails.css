@@ -5,6 +5,7 @@ body.fair-trail-active:not(.reading-page) #caption-reading { overflow-y:auto; pa
 .fair-trail-kicker { display:flex; justify-content:space-between; align-items:center; gap:14px; color:#e9cb8f; font:11px/1.6 'Microsoft YaHei',sans-serif; letter-spacing:.08em; }
 .fair-trail-step { flex:none; font:12px/1.6 Georgia,serif; letter-spacing:.12em; }
 #picture-caption .fair-trail .fair-trail-copy { display:block; max-width:42em; overflow:visible; -webkit-line-clamp:unset; margin:9px 0 12px; color:#ece5d4; font:13px/1.85 'Microsoft YaHei',sans-serif; }
+#picture-caption .fair-trail .fair-trail-copy[hidden] { display:none!important; }
 .fair-trail-actions,.fair-trail-spot-controls { display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; }
 #picture-caption .fair-trail button { min-height:44px; max-width:100%; padding:8px 12px; border:1px solid #bda67c90; border-radius:6px; font:12px/1.6 'Microsoft YaHei',sans-serif; color:#fbefd1; background:#345042; cursor:pointer; touch-action:manipulation; }
 #picture-caption .fair-trail button[hidden],.fair-trail-spot-controls[hidden],.fair-trail-spot-story[hidden] { display:none!important; }

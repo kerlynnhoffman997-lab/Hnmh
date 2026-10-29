@@ -74,8 +74,23 @@
       if (announce) status('已回到这件器物的原画，可以继续读故事。');
     }
 
+    function restoreOriginalReading(restoredNode) {
+      void Promise.resolve().then(() => {
+        if (typeof onRestore === 'function') return onRestore(restoredNode);
+      }).then(() => {
+        if (nodeId === restoredNode) view.FairReading?.restore();
+      }).catch(() => {});
+    }
+
     function syncControls() {
       if (!panel) return;
+      const copy = panel.querySelector('.fair-trail-copy');
+      const compact = text => (text || '').replace(/\s+/g, '');
+      const copyText = compact(copy?.textContent);
+      const summaryText = compact(doc.querySelector('#caption-reading > .caption-summary')?.textContent);
+      // Keep one copy of an identical introduction. In a close-up the summary
+      // is replaced, so its route introduction must be available again.
+      if (copy) copy.hidden = !doc.body.classList.contains('fair-trail-detail-active') && Boolean(copyText && copyText === summaryText);
       const busy = pending || entering;
       panel.setAttribute('aria-busy', String(busy || detailState === 'loading'));
       for (const el of panel.querySelectorAll('button')) el.disabled = busy;
@@ -185,6 +200,7 @@
 
     async function openDetail() {
       if (!trail?.image || nodeId !== trail.objectId || pending || entering || frame.inert || detailState === 'loading') return;
+      if (detailState === 'closed') view.FairReading?.capture();
       closeDetail();
       const ticket = ++detailRequest, item = trail;
       const launchControl = panel?.querySelector('.fair-trail-open-detail');
@@ -254,7 +270,7 @@
         back.addEventListener('click', () => {
           const restoredNode = nodeId;
           closeDetail({announce: true}); open.focus({preventScroll: true});
-          if (typeof onRestore === 'function') void Promise.resolve().then(() => onRestore(restoredNode)).catch(() => {});
+          restoreOriginalReading(restoredNode);
         });
         const save = button('fair-trail-save', '留一张赶会小卷 ↗');
         save.addEventListener('click', () => {
@@ -304,6 +320,14 @@
         syncControls();
       },
       setEntering(value) { entering = Boolean(value); if (entering) clearCue(); syncControls(); },
+      dismissDetail() {
+        if (detailState === 'closed') return false;
+        const restoredNode = nodeId;
+        closeDetail({announce: true});
+        panel?.querySelector('.fair-trail-open-detail')?.focus({preventScroll: true});
+        restoreOriginalReading(restoredNode);
+        return true;
+      },
       handles(id) { return byNode.has(id); },
       readState() {
         return {nodeId, trailId: trail?.id || null, detailState, activeSpot, pending, entering,
